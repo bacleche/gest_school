@@ -1,0 +1,175 @@
+@startuml MLD_07_transversal
+title MLD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "NOTIFICATION" as NOTIFICATION {
+  * id_notification : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * type_notification : VARCHAR(40)
+  * titre : VARCHAR(200)
+  * message : TEXT
+  * priorite : VARCHAR(10) IN (BASSE,NORMALE,HAUTE,URGENTE) DEFAULT 'NORMALE'
+  entite_type : VARCHAR(50)
+  entite_id : BIGINT
+  * est_lue : BOOLEAN DEFAULT FALSE
+  date_lecture : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : entite_type/entite_id = reference generique sans FK (cible verifiee par l'application)
+}
+entity "DEMANDE" as DEMANDE {
+  * id_demande : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_utilisateur_demandeur : BIGINT <<FK>>
+  id_eleve : BIGINT <<FK>>
+  id_staff_traitant : BIGINT <<FK>>
+  * type_demande : VARCHAR(40)
+  * objet : VARCHAR(200)
+  * description : TEXT
+  * statut : VARCHAR(20) IN (EN_ATTENTE,EN_COURS,APPROUVEE,REJETEE,CLOTUREE) DEFAULT 'EN_ATTENTE'
+  reponse : TEXT
+  * date_demande : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_traitement : TIMESTAMP
+  ..
+  CHECK (demandeur parent => id_eleve parmi ses enfants (ELEVE_PARENT) (trigger))
+  FK composites (+ id_etablissement) : id_eleve, id_staff_traitant
+}
+entity "RAPPORT" as RAPPORT {
+  * id_rapport : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_domaine : BIGINT <<FK>>
+  * id_utilisateur_generateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * type_rapport : VARCHAR(50)
+  periode_debut : DATE
+  periode_fin : DATE
+  parametres : TEXT
+  * format_fichier : VARCHAR(10) IN (PDF,XLSX,CSV)
+  fichier : VARCHAR(255)
+  * date_generation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : id_domaine NULL = rapport multi-domaines (tableau de bord)
+}
+entity "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  * id_journal_audit : BIGINT <<PK>>
+  --
+  id_utilisateur : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * type_operation : VARCHAR(50)
+  * entite_type : VARCHAR(80)
+  entite_id : BIGINT
+  anciennes_valeurs : TEXT
+  nouvelles_valeurs : TEXT
+  adresse_ip : VARCHAR(45)
+  * date_action : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : entite_type/entite_id = reference generique sans FK (conservee meme si la cible est archivee)
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+}
+entity "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  * id_parametre_systeme : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  id_utilisateur_modificateur : BIGINT <<FK>>
+  * cle : VARCHAR(100)
+  * valeur : TEXT
+  description : VARCHAR(255)
+  * date_modification : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, cle) WHERE id_etablissement IS NOT NULL
+  UNIQUE (cle) WHERE id_etablissement IS NULL
+  NB : cles BLOCAGE_RESULTATS_IMPAYES (defaut FALSE) et SEUIL_TOLERANCE_IMPAYE (montant, defaut 0)
+  NB : cles NOTE_ABSENCE_INJUSTIFIEE (ZERO ou EXCLU) et DUREE_CONSERVATION_ANNEES (defaut 10)
+}
+entity "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  * id_envoi_notification : BIGINT <<PK>>
+  --
+  * id_notification : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * canal : VARCHAR(12) IN (APPLICATION,WHATSAPP,SMS,EMAIL)
+  * destination : VARCHAR(254)
+  fournisseur_envoi : VARCHAR(50)
+  reference_fournisseur : VARCHAR(100)
+  * statut : VARCHAR(12) IN (EN_ATTENTE,ENVOYE,DISTRIBUE,ECHEC) DEFAULT 'EN_ATTENTE'
+  * tentatives : SMALLINT DEFAULT 0
+  cout : DECIMAL(10,2)
+  devise : VARCHAR(3)
+  code_erreur : VARCHAR(50)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_envoi : TIMESTAMP
+  date_distribution : TIMESTAMP
+  ..
+  CHECK (tentatives >= 0 AND (cout IS NULL OR cout >= 0))
+  CHECK (statut <> 'DISTRIBUE' OR date_distribution IS NOT NULL)
+  NB : canal choisi selon canal_notification_prefere ; WhatsApp d'abord, SMS en secours
+  NB : cout facture a l'etablissement ; rapport mensuel des couts d'envoi par etablissement
+  NB : visible par le personnel de l'etablissement et l'admin systeme (RLS)
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE <<externe>> {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "DOMAINE" as DOMAINE <<externe>> {
+  * id_domaine : BIGINT <<PK>>
+}
+UTILISATEUR ||--o{ NOTIFICATION : "id_utilisateur"
+ETABLISSEMENT |o--o{ NOTIFICATION : "id_etablissement"
+NOTIFICATION ||--o{ ENVOI_NOTIFICATION : "id_notification"
+ETABLISSEMENT |o--o{ ENVOI_NOTIFICATION : "id_etablissement"
+ETABLISSEMENT ||--o{ DEMANDE : "id_etablissement"
+UTILISATEUR ||--o{ DEMANDE : "id_utilisateur_demandeur"
+ELEVE |o--o{ DEMANDE : "id_eleve"
+STAFF |o--o{ DEMANDE : "id_staff_traitant"
+ETABLISSEMENT ||--o{ RAPPORT : "id_etablissement"
+DOMAINE |o--o{ RAPPORT : "id_domaine"
+UTILISATEUR ||--o{ RAPPORT : "id_utilisateur_generateur"
+UTILISATEUR |o--o{ JOURNAL_AUDIT : "id_utilisateur"
+ETABLISSEMENT |o--o{ JOURNAL_AUDIT : "id_etablissement"
+ETABLISSEMENT |o--o{ PARAMETRE_SYSTEME : "id_etablissement"
+UTILISATEUR |o--o{ PARAMETRE_SYSTEME : "id_utilisateur_modificateur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

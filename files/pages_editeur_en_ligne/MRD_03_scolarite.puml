@@ -1,0 +1,53 @@
+@startuml MRD_03_scolarite
+title MRD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>PARENT</b> ( <u>id_parent</u>, profession, employeur, adresse, telephone_secondaire,
+        date_creation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_utilisateur)</color>
+
+<b>ELEVE</b> ( <u>id_eleve</u>, matricule, nom, prenom, sexe,
+        date_naissance, lieu_naissance, nationalite, adresse, photo,
+        consentement_photo, date_consentement_photo, date_anonymisation, statut, date_creation,
+        <b>#id_etablissement</b>, <b><i>#id_utilisateur</i></b>, <b><i>#id_famille</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur -> UTILISATEUR ; id_famille -> FAMILLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_famille</color>
+<color:#555555>   UNIQUE : (id_etablissement, matricule) ; (id_utilisateur, id_etablissement)</color>
+
+<b>ELEVE_PARENT</b> ( <u>id_eleve_parent</u>, type_lien, est_responsable_legal, est_responsable_financier, est_contact_urgence,
+        peut_consulter, date_debut, date_fin, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_parent</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_parent -> PARENT</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve</color>
+<color:#555555>   UNIQUE : (id_eleve, id_parent)</color>
+
+<b>INSCRIPTION</b> ( <u>id_inscription</u>, date_inscription, type_inscription, statut, date_validation,
+        observation, <b>#id_etablissement</b>, <b>#id_eleve</b>, <b>#id_classe</b>, <b>#id_annee_scolaire</b>,
+        <b>#id_staff_createur</b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_classe -> CLASSE ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_staff_createur -> STAFF ; id_staff_validateur -> STAFF ; (id_classe, id_annee_scolaire) -> CLASSE (id_classe, id_annee_scolaire)</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_classe, id_annee_scolaire, id_staff_createur, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_eleve, id_annee_scolaire) WHERE statut IN ('EN_ATTENTE','VALIDEE')</color>
+
+<b>TYPE_DOCUMENT</b> ( <u>id_type_document</u>, code, libelle, genere_automatiquement, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>DOCUMENT</b> ( <u>id_document</u>, titre, fichier, date_document, visible_parent,
+        visible_eleve, statut, date_creation, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_type_document</b>, <b><i>#id_staff_auteur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_type_document -> TYPE_DOCUMENT ; id_staff_auteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_staff_auteur</color>
+
+<b>FAMILLE</b> ( <u>id_famille</u>, nom, date_creation, <b>#id_etablissement</b>, <b><i>#id_parent_referent</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_parent_referent -> PARENT</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

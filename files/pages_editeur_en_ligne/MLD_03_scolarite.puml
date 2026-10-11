@@ -1,0 +1,198 @@
+@startuml MLD_03_scolarite
+title MLD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "PARENT" as PARENT {
+  * id_parent : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>> UNIQUE
+  profession : VARCHAR(100)
+  employeur : VARCHAR(150)
+  adresse : VARCHAR(255)
+  telephone_secondaire : VARCHAR(30)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : PARENT commun ; visible (RLS) seulement via ELEVE_PARENT vers un eleve de l'etablissement
+}
+entity "ELEVE" as ELEVE {
+  * id_eleve : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_utilisateur : BIGINT <<FK>>
+  id_famille : BIGINT <<FK>>
+  * matricule : VARCHAR(30)
+  * nom : VARCHAR(100)
+  * prenom : VARCHAR(100)
+  * sexe : CHAR(1) IN (M,F)
+  * date_naissance : DATE
+  lieu_naissance : VARCHAR(100)
+  nationalite : VARCHAR(60)
+  adresse : VARCHAR(255)
+  photo : VARCHAR(255)
+  * consentement_photo : BOOLEAN DEFAULT FALSE
+  date_consentement_photo : TIMESTAMP
+  date_anonymisation : TIMESTAMP
+  * statut : VARCHAR(20) IN (ACTIF,TRANSFERE,DIPLOME,EXCLU,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, matricule)
+  UNIQUE (id_utilisateur, id_etablissement)
+  CHECK (photo IS NULL OR consentement_photo)
+  NB : transfert = nouvelle fiche ELEVE dans l'autre ecole, meme compte et meme identifiant de connexion
+  NB : ARCHIVE depuis plus de DUREE_CONSERVATION_ANNEES => anonymisation (identite, photo, adresse, contacts) ;
+  NB : scolarite et paiements conserves sous pseudonyme (traitement planifie, trace dans JOURNAL_AUDIT)
+  NB : nom/prenom conserves ici car le compte UTILISATEUR de l'eleve est facultatif
+  FK composites (+ id_etablissement) : id_famille
+}
+entity "ELEVE_PARENT" as ELEVE_PARENT {
+  * id_eleve_parent : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_parent : BIGINT <<FK>>
+  * type_lien : VARCHAR(20) IN (PERE,MERE,TUTEUR,AUTRE)
+  * est_responsable_legal : BOOLEAN DEFAULT FALSE
+  * est_responsable_financier : BOOLEAN DEFAULT FALSE
+  * est_contact_urgence : BOOLEAN DEFAULT FALSE
+  * peut_consulter : BOOLEAN DEFAULT TRUE
+  * date_debut : DATE DEFAULT CURRENT_DATE
+  date_fin : DATE
+  ..
+  UNIQUE (id_eleve, id_parent)
+  CHECK (au moins un responsable legal actif par eleve (trigger))
+  NB : acces parent (RLS) seulement si lien actif (date_fin NULL ou future) et peut_consulter = TRUE
+  FK composites (+ id_etablissement) : id_eleve
+}
+entity "INSCRIPTION" as INSCRIPTION {
+  * id_inscription : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_classe : BIGINT <<FK>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * id_staff_createur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * date_inscription : DATE
+  * type_inscription : VARCHAR(20) IN (NOUVELLE,REINSCRIPTION)
+  * statut : VARCHAR(20) IN (EN_ATTENTE,VALIDEE,REJETEE,ANNULEE,CHANGEMENT_CLASSE,ARCHIVEE) DEFAULT 'EN_ATTENTE'
+  date_validation : TIMESTAMP
+  observation : TEXT
+  ..
+  UNIQUE (id_eleve, id_annee_scolaire) WHERE statut IN ('EN_ATTENTE','VALIDEE')
+  FK (id_classe, id_annee_scolaire) -> CLASSE (id_classe, id_annee_scolaire)
+  NB : changement de classe = ancienne inscription close (CHANGEMENT_CLASSE) + nouvelle inscription ;
+  NB : notes, presences et creances deja saisies restent rattachees a l'ancienne inscription
+  NB : passage a VALIDEE => compte eleve (si absent), CARTE_ELEVE et son PDF generes automatiquement
+  FK composites (+ id_etablissement) : id_eleve, id_classe, id_annee_scolaire, id_staff_createur, id_staff_validateur
+}
+entity "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  * id_type_document : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * genere_automatiquement : BOOLEAN DEFAULT FALSE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "DOCUMENT" as DOCUMENT {
+  * id_document : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_type_document : BIGINT <<FK>>
+  id_staff_auteur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * fichier : VARCHAR(255)
+  * date_document : DATE DEFAULT CURRENT_DATE
+  * visible_parent : BOOLEAN DEFAULT FALSE
+  * visible_eleve : BOOLEAN DEFAULT FALSE
+  * statut : VARCHAR(20) IN (ACTIF,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : visible parent (RLS) si visible_parent = TRUE et lien actif ; eleve si visible_eleve = TRUE
+  NB : un document de type BULLETIN est en plus soumis a est_en_regle (blocage des impayes)
+  FK composites (+ id_etablissement) : id_eleve, id_staff_auteur
+}
+entity "FAMILLE" as FAMILLE {
+  * id_famille : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_parent_referent : BIGINT <<FK>>
+  * nom : VARCHAR(100)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : regroupe les freres et soeurs d'un etablissement (reduction famille nombreuse)
+  NB : un eleve appartient au plus a une famille ; le referent est le parent payeur habituel
+  NB : composition modifiee (inscription annulee, enfant ajoute ou retire) => recalcul des reductions
+  NB : des creances non soldees de la famille (trigger)
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE <<externe>> {
+  * id_classe : BIGINT <<PK>>
+}
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+UTILISATEUR ||--o| PARENT : "id_utilisateur"
+ETABLISSEMENT ||--o{ ELEVE : "id_etablissement"
+ETABLISSEMENT ||--o{ FAMILLE : "id_etablissement"
+PARENT |o--o{ FAMILLE : "id_parent_referent"
+FAMILLE |o--o{ ELEVE : "id_famille"
+UTILISATEUR |o--o{ ELEVE : "id_utilisateur"
+ELEVE ||--o{ ELEVE_PARENT : "id_eleve"
+PARENT ||--o{ ELEVE_PARENT : "id_parent"
+ELEVE ||--o{ INSCRIPTION : "id_eleve"
+CLASSE ||--o{ INSCRIPTION : "id_classe"
+ANNEE_SCOLAIRE ||--o{ INSCRIPTION : "id_annee_scolaire"
+STAFF ||--o{ INSCRIPTION : "id_staff_createur"
+STAFF |o--o{ INSCRIPTION : "id_staff_validateur"
+ELEVE ||--o{ DOCUMENT : "id_eleve"
+ETABLISSEMENT |o--o{ TYPE_DOCUMENT : "id_etablissement"
+TYPE_DOCUMENT ||--o{ DOCUMENT : "id_type_document"
+STAFF |o--o{ DOCUMENT : "id_staff_auteur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

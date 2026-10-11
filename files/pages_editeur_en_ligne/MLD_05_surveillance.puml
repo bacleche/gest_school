@@ -1,0 +1,143 @@
+@startuml MLD_05_surveillance
+title MLD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "PRESENCE" as PRESENCE {
+  * id_presence : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  id_creneau : BIGINT <<FK>>
+  * id_staff_enregistreur : BIGINT <<FK>>
+  * date_presence : DATE
+  * statut : VARCHAR(20) IN (PRESENT,ABSENT,RETARD)
+  minutes_retard : SMALLINT
+  * est_justifiee : BOOLEAN DEFAULT FALSE
+  motif : VARCHAR(255)
+  * date_enregistrement : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_creneau, date_presence) WHERE id_creneau IS NOT NULL
+  UNIQUE (id_inscription, date_presence) WHERE id_creneau IS NULL
+  CHECK (statut <> 'RETARD' OR minutes_retard > 0)
+  CHECK (statut <> 'PRESENT' OR est_justifiee = FALSE)
+  CHECK (jour de date_presence = creneau.jour_semaine et date dans la validite du creneau (trigger))
+  FK composites (+ id_etablissement) : id_inscription, id_creneau, id_staff_enregistreur
+}
+entity "TYPE_INCIDENT" as TYPE_INCIDENT {
+  * id_type_incident : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * gravite_defaut : VARCHAR(10) IN (MINEURE,MOYENNE,GRAVE) DEFAULT 'MINEURE'
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "INCIDENT" as INCIDENT {
+  * id_incident : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_type_incident : BIGINT <<FK>>
+  * id_staff_signalant : BIGINT <<FK>>
+  id_staff_examinateur : BIGINT <<FK>>
+  * date_incident : TIMESTAMP
+  lieu : VARCHAR(100)
+  * description : TEXT
+  * gravite : VARCHAR(10) IN (MINEURE,MOYENNE,GRAVE)
+  * statut : VARCHAR(20) IN (SIGNALE,EN_EXAMEN,DECIDE,CLOTURE) DEFAULT 'SIGNALE'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : un seul eleve par incident (plusieurs eleves impliques = plusieurs incidents)
+  FK composites (+ id_etablissement) : id_inscription, id_staff_signalant, id_staff_examinateur
+}
+entity "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  * id_observation_incident : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_incident : BIGINT <<FK>>
+  * id_staff_auteur : BIGINT <<FK>>
+  * contenu : TEXT
+  * date_observation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  FK composites (+ id_etablissement) : id_incident, id_staff_auteur
+}
+entity "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  * id_decision_disciplinaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_incident : BIGINT <<FK>>
+  * id_staff_decideur : BIGINT <<FK>>
+  * type_sanction : VARCHAR(30) IN (AUCUNE,AVERTISSEMENT,BLAME,RETENUE,EXCLUSION_TEMPORAIRE,EXCLUSION_DEFINITIVE)
+  description : TEXT
+  * date_decision : DATE
+  date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (PROPOSEE,APPROUVEE,APPLIQUEE,ANNULEE) DEFAULT 'PROPOSEE'
+  ..
+  CHECK (date_fin IS NULL OR date_debut IS NULL OR date_fin >= date_debut)
+  CHECK (type_sanction <> 'EXCLUSION_TEMPORAIRE' OR (date_debut IS NOT NULL AND date_fin IS NOT NULL))
+  CHECK (EXCLUSION_DEFINITIVE APPLIQUEE => eleve.statut = 'EXCLU' (trigger))
+  FK composites (+ id_etablissement) : id_incident, id_staff_decideur
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "CRENEAU" as CRENEAU <<externe>> {
+  * id_creneau : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+INSCRIPTION ||--o{ PRESENCE : "id_inscription"
+CRENEAU |o--o{ PRESENCE : "id_creneau"
+STAFF ||--o{ PRESENCE : "id_staff_enregistreur"
+INSCRIPTION ||--o{ INCIDENT : "id_inscription"
+ETABLISSEMENT |o--o{ TYPE_INCIDENT : "id_etablissement"
+TYPE_INCIDENT ||--o{ INCIDENT : "id_type_incident"
+STAFF ||--o{ INCIDENT : "id_staff_signalant"
+STAFF |o--o{ INCIDENT : "id_staff_examinateur"
+INCIDENT ||--o{ OBSERVATION_INCIDENT : "id_incident"
+STAFF ||--o{ OBSERVATION_INCIDENT : "id_staff_auteur"
+INCIDENT ||--o{ DECISION_DISCIPLINAIRE : "id_incident"
+STAFF ||--o{ DECISION_DISCIPLINAIRE : "id_staff_decideur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

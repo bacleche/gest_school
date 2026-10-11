@@ -1,0 +1,57 @@
+@startuml MRD_09_paiement_en_ligne
+title MRD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>FOURNISSEUR_PAIEMENT</b> ( <u>id_fournisseur_paiement</u>, code, libelle, type_fournisseur, supporte_partage,
+        est_actif )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>PAYS</b> ( <u>id_pays</u>, code_iso, nom, indicatif_telephonique, devise )
+<color:#555555>   UNIQUE : (indicatif_telephonique) ; (code_iso)</color>
+
+<b>FOURNISSEUR_PAYS</b> ( <u>id_fournisseur_pays</u>, prefixes_numero, est_actif, <b>#id_fournisseur_paiement</b>, <b>#id_pays</b> )
+<color:#555555>   FK : id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT ; id_pays -> PAYS</color>
+<color:#555555>   UNIQUE : (id_fournisseur_paiement, id_pays)</color>
+
+<b>CONFIG_PAIEMENT_ETABLISSEMENT</b> ( <u>id_config_paiement_etablissement</u>, identifiant_marchand, reference_secret, environnement, frais_a_charge,
+        est_actif, date_creation, <b>#id_etablissement</b>, <b>#id_fournisseur_paiement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, id_fournisseur_paiement, environnement)</color>
+
+<b>TRANSACTION_EN_LIGNE</b> ( <u>id_transaction_en_ligne</u>, numero_telephone, reference_interne, reference_fournisseur, montant,
+        frais_operateur, taux_commission, montant_commission, mode_perception_commission, montant_total,
+        devise, taux_change, statut, code_erreur, message_erreur,
+        date_initiation, date_expiration, date_confirmation, <b>#id_etablissement</b>, <b>#id_config_paiement_etablissement</b>,
+        <b>#id_utilisateur_initiateur</b>, <b>#id_pays</b>, <b>#id_contrat_plateforme</b>, <b><i>#id_facture_commission</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_config_paiement_etablissement -> CONFIG_PAIEMENT_ETABLISSEMENT ; id_utilisateur_initiateur -> UTILISATEUR ; id_pays -> PAYS ; id_contrat_plateforme -> CONTRAT_PLATEFORME ; id_facture_commission -> FACTURE_COMMISSION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_config_paiement_etablissement, id_contrat_plateforme, id_facture_commission</color>
+<color:#555555>   UNIQUE : (reference_interne) ; (id_config_paiement_etablissement, reference_fournisseur) WHERE reference_fournisseur IS NOT NULL</color>
+
+<b>TRANSACTION_CREANCE</b> ( <u>id_transaction_creance</u>, montant, <b>#id_etablissement</b>, <b>#id_transaction_en_ligne</b>, <b>#id_creance</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE ; id_creance -> CREANCE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_transaction_en_ligne, id_creance</color>
+<color:#555555>   UNIQUE : (id_transaction_en_ligne, id_creance)</color>
+
+<b>NOTIFICATION_FOURNISSEUR</b> ( <u>id_notification_fournisseur</u>, reference_fournisseur, contenu_brut, signature_valide, adresse_ip,
+        statut_traitement, date_reception, date_traitement, <b>#id_fournisseur_paiement</b>, <b><i>#id_transaction_en_ligne</i></b> )
+<color:#555555>   FK : id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE</color>
+
+<b>CONTRAT_PLATEFORME</b> ( <u>id_contrat_plateforme</u>, reference_contrat, taux_commission, commission_a_charge, date_debut,
+        date_fin, statut, <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+
+<b>FACTURE_COMMISSION</b> ( <u>id_facture_commission</u>, numero, mois, montant_total, devise,
+        statut, date_emission, date_echeance, date_paiement, fichier,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (numero) ; (id_etablissement, mois) WHERE statut <> 'ANNULEE'</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

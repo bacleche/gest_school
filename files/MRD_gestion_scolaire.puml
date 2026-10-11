@@ -1,0 +1,531 @@
+' ============================================================
+' MRD - MODELE RELATIONNEL (notation textuelle) - GESTION SCOLAIRE
+' 10 pages (une par domaine) - 72 relations.
+' Derive du MLD : toute modification doit etre reportee dans les deux fichiers.
+' ============================================================
+@startuml MRD_01_noyau
+title MRD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>ETABLISSEMENT</b> ( <u>id_etablissement</u>, code, nom, type_etablissement, adresse,
+        ville, pays, telephone, email, logo,
+        devise, est_actif, date_creation )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>UTILISATEUR</b> ( <u>id_utilisateur</u>, email, mot_de_passe_hash, nom, prenom,
+        telephone, identifiant, photo, est_admin_systeme, statut_compte,
+        derniere_connexion, tentatives_echec, verrouille_jusqu_a, date_changement_mdp, telephone_verifie_le,
+        email_verifie_le, doit_changer_mdp, type_secret, methode_2fa, reference_secret_2fa,
+        canal_notification_prefere, date_anonymisation, date_creation )
+<color:#555555>   UNIQUE : (identifiant) ; (telephone) ; (email)</color>
+
+<b>STAFF</b> ( <u>id_staff</u>, type_staff, matricule, fonction, specialite,
+        date_embauche, date_fin, statut, date_creation, <b>#id_utilisateur</b>,
+        <b>#id_etablissement</b>, <b><i>#id_staff_createur</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT ; id_staff_createur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_createur</color>
+<color:#555555>   UNIQUE : (id_etablissement, matricule) ; (id_utilisateur, id_etablissement)</color>
+
+<b>DOMAINE</b> ( <u>id_domaine</u>, code, libelle, description )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>TYPE_ACTION</b> ( <u>id_type_action</u>, code, libelle, categorie )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>PERMISSION</b> ( <u>id_permission</u>, code, libelle, ressource, description,
+        <b>#id_domaine</b>, <b>#id_type_action</b> )
+<color:#555555>   FK : id_domaine -> DOMAINE ; id_type_action -> TYPE_ACTION</color>
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>ATTRIBUTION_PERMISSION</b> ( <u>id_attribution_permission</u>, date_attribution, date_expiration, est_active, <b>#id_etablissement</b>,
+        <b>#id_staff_beneficiaire</b>, <b>#id_permission</b>, <b>#id_staff_attribuant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_staff_beneficiaire -> STAFF ; id_permission -> PERMISSION ; id_staff_attribuant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant</color>
+<color:#555555>   UNIQUE : (id_staff_beneficiaire, id_permission) WHERE est_active = TRUE</color>
+
+<b>ROLE</b> ( <u>id_role</u>, code, libelle, description, est_actif,
+        <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>ROLE_PERMISSION</b> ( <u>id_role_permission</u>, <b>#id_role</b>, <b>#id_permission</b> )
+<color:#555555>   FK : id_role -> ROLE ; id_permission -> PERMISSION</color>
+<color:#555555>   UNIQUE : (id_role, id_permission)</color>
+
+<b>ATTRIBUTION_ROLE</b> ( <u>id_attribution_role</u>, date_attribution, date_expiration, est_active, <b>#id_etablissement</b>,
+        <b>#id_staff_beneficiaire</b>, <b>#id_role</b>, <b>#id_staff_attribuant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_staff_beneficiaire -> STAFF ; id_role -> ROLE ; id_staff_attribuant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant</color>
+<color:#555555>   UNIQUE : (id_staff_beneficiaire, id_role) WHERE est_active = TRUE</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_02_academique
+title MRD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>ANNEE_SCOLAIRE</b> ( <u>id_annee_scolaire</u>, libelle, date_debut, date_fin, statut,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, libelle) ; (id_etablissement) WHERE statut = 'EN_COURS'</color>
+
+<b>PERIODE</b> ( <u>id_periode</u>, libelle, numero, date_debut, date_fin,
+        statut, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, numero) ; (id_annee_scolaire) WHERE statut = 'EN_COURS'</color>
+
+<b>NIVEAU</b> ( <u>id_niveau</u>, code, libelle, cycle, ordre,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+
+<b>CLASSE</b> ( <u>id_classe</u>, nom, effectif_max, statut, <b>#id_etablissement</b>,
+        <b>#id_annee_scolaire</b>, <b>#id_niveau</b>, <b><i>#id_staff_titulaire</i></b>, <b><i>#id_salle</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_niveau -> NIVEAU ; id_staff_titulaire -> STAFF ; id_salle -> SALLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau, id_staff_titulaire, id_salle</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, nom) ; (id_classe, id_annee_scolaire) (cible de la FK composite d'INSCRIPTION)</color>
+
+<b>MATIERE</b> ( <u>id_matiere</u>, code, libelle, description, est_active,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+
+<b>ENSEIGNEMENT</b> ( <u>id_enseignement</u>, coefficient, volume_horaire_hebdo, date_debut, date_fin,
+        statut, <b>#id_etablissement</b>, <b>#id_classe</b>, <b>#id_matiere</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_classe -> CLASSE ; id_matiere -> MATIERE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_classe, id_matiere</color>
+<color:#555555>   UNIQUE : (id_classe, id_matiere)</color>
+
+<b>CRENEAU</b> ( <u>id_creneau</u>, jour_semaine, heure_debut, heure_fin, date_debut,
+        date_fin, <b>#id_etablissement</b>, <b>#id_enseignement</b>, <b><i>#id_salle</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_salle -> SALLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_salle</color>
+<color:#555555>   UNIQUE : (id_enseignement, jour_semaine, heure_debut, date_debut)</color>
+
+<b>AFFECTATION_ENSEIGNANT</b> ( <u>id_affectation_enseignant</u>, type_affectation, date_debut, date_fin, motif,
+        <b>#id_etablissement</b>, <b>#id_enseignement</b>, <b>#id_staff_enseignant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_staff_enseignant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_staff_enseignant</color>
+
+<b>SALLE</b> ( <u>id_salle</u>, code, libelle, capacite, est_active,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_03_scolarite
+title MRD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>PARENT</b> ( <u>id_parent</u>, profession, employeur, adresse, telephone_secondaire,
+        date_creation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_utilisateur)</color>
+
+<b>ELEVE</b> ( <u>id_eleve</u>, matricule, nom, prenom, sexe,
+        date_naissance, lieu_naissance, nationalite, adresse, photo,
+        consentement_photo, date_consentement_photo, date_anonymisation, statut, date_creation,
+        <b>#id_etablissement</b>, <b><i>#id_utilisateur</i></b>, <b><i>#id_famille</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur -> UTILISATEUR ; id_famille -> FAMILLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_famille</color>
+<color:#555555>   UNIQUE : (id_etablissement, matricule) ; (id_utilisateur, id_etablissement)</color>
+
+<b>ELEVE_PARENT</b> ( <u>id_eleve_parent</u>, type_lien, est_responsable_legal, est_responsable_financier, est_contact_urgence,
+        peut_consulter, date_debut, date_fin, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_parent</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_parent -> PARENT</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve</color>
+<color:#555555>   UNIQUE : (id_eleve, id_parent)</color>
+
+<b>INSCRIPTION</b> ( <u>id_inscription</u>, date_inscription, type_inscription, statut, date_validation,
+        observation, <b>#id_etablissement</b>, <b>#id_eleve</b>, <b>#id_classe</b>, <b>#id_annee_scolaire</b>,
+        <b>#id_staff_createur</b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_classe -> CLASSE ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_staff_createur -> STAFF ; id_staff_validateur -> STAFF ; (id_classe, id_annee_scolaire) -> CLASSE (id_classe, id_annee_scolaire)</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_classe, id_annee_scolaire, id_staff_createur, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_eleve, id_annee_scolaire) WHERE statut IN ('EN_ATTENTE','VALIDEE')</color>
+
+<b>TYPE_DOCUMENT</b> ( <u>id_type_document</u>, code, libelle, genere_automatiquement, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>DOCUMENT</b> ( <u>id_document</u>, titre, fichier, date_document, visible_parent,
+        visible_eleve, statut, date_creation, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_type_document</b>, <b><i>#id_staff_auteur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_type_document -> TYPE_DOCUMENT ; id_staff_auteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_staff_auteur</color>
+
+<b>FAMILLE</b> ( <u>id_famille</u>, nom, date_creation, <b>#id_etablissement</b>, <b><i>#id_parent_referent</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_parent_referent -> PARENT</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_04_evaluation
+title MRD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>TYPE_EVALUATION</b> ( <u>id_type_evaluation</u>, code, libelle, coefficient_defaut, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>EVALUATION</b> ( <u>id_evaluation</u>, titre, date_evaluation, note_maximale, coefficient,
+        statut, date_validation, date_creation, <b>#id_etablissement</b>, <b>#id_enseignement</b>,
+        <b>#id_periode</b>, <b>#id_type_evaluation</b>, <b>#id_staff_createur</b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_periode -> PERIODE ; id_type_evaluation -> TYPE_EVALUATION ; id_staff_createur -> STAFF ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_periode, id_staff_createur, id_staff_validateur</color>
+
+<b>NOTE</b> ( <u>id_note</u>, valeur, statut_note, observation, date_saisie,
+        date_modification, <b>#id_etablissement</b>, <b>#id_evaluation</b>, <b>#id_inscription</b>, <b>#id_staff_saisie</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_evaluation -> EVALUATION ; id_inscription -> INSCRIPTION ; id_staff_saisie -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_evaluation, id_inscription, id_staff_saisie</color>
+<color:#555555>   UNIQUE : (id_evaluation, id_inscription)</color>
+
+<b>HISTORIQUE_NOTE</b> ( <u>id_historique_note</u>, type_operation, ancienne_valeur, nouvelle_valeur, motif,
+        date_modification, <b>#id_etablissement</b>, <b>#id_note</b>, <b>#id_staff_modificateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_note -> NOTE ; id_staff_modificateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_note, id_staff_modificateur</color>
+
+<b>RESULTAT_MATIERE</b> ( <u>id_resultat_matiere</u>, moyenne, rang, appreciation, statut,
+        date_calcul, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_enseignement</b>, <b>#id_periode</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_enseignement -> ENSEIGNEMENT ; id_periode -> PERIODE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_enseignement, id_periode</color>
+<color:#555555>   UNIQUE : (id_inscription, id_enseignement, id_periode)</color>
+
+<b>RESULTAT_PERIODE</b> ( <u>id_resultat_periode</u>, moyenne_generale, rang, mention, appreciation_generale,
+        statut, date_validation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_periode</b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_periode -> PERIODE ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_inscription, id_periode)</color>
+
+<b>RESULTAT_ANNUEL</b> ( <u>id_resultat_annuel</u>, moyenne_annuelle, rang, decision, appreciation,
+        statut, date_deliberation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_niveau_propose</i></b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_niveau_propose -> NIVEAU ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_niveau_propose, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_inscription)</color>
+
+<b>DEROGATION_ACCES_RESULTAT</b> ( <u>id_derogation_acces_resultat</u>, motif, date_accord, date_fin_validite, est_active,
+        <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_periode</i></b>, <b>#id_staff_accordant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_periode -> PERIODE ; id_staff_accordant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_accordant</color>
+<color:#555555>   UNIQUE : (id_inscription, id_periode) WHERE est_active AND id_periode IS NOT NULL ; (id_inscription) WHERE est_active AND id_periode IS NULL</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_05_surveillance
+title MRD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>PRESENCE</b> ( <u>id_presence</u>, date_presence, statut, minutes_retard, est_justifiee,
+        motif, date_enregistrement, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_creneau</i></b>,
+        <b>#id_staff_enregistreur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_creneau -> CRENEAU ; id_staff_enregistreur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_creneau, id_staff_enregistreur</color>
+<color:#555555>   UNIQUE : (id_inscription, id_creneau, date_presence) WHERE id_creneau IS NOT NULL ; (id_inscription, date_presence) WHERE id_creneau IS NULL</color>
+
+<b>TYPE_INCIDENT</b> ( <u>id_type_incident</u>, code, libelle, gravite_defaut, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>INCIDENT</b> ( <u>id_incident</u>, date_incident, lieu, description, gravite,
+        statut, date_creation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_type_incident</b>,
+        <b>#id_staff_signalant</b>, <b><i>#id_staff_examinateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_type_incident -> TYPE_INCIDENT ; id_staff_signalant -> STAFF ; id_staff_examinateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_staff_signalant, id_staff_examinateur</color>
+
+<b>OBSERVATION_INCIDENT</b> ( <u>id_observation_incident</u>, contenu, date_observation, <b>#id_etablissement</b>, <b>#id_incident</b>,
+        <b>#id_staff_auteur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_incident -> INCIDENT ; id_staff_auteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_incident, id_staff_auteur</color>
+
+<b>DECISION_DISCIPLINAIRE</b> ( <u>id_decision_disciplinaire</u>, type_sanction, description, date_decision, date_debut,
+        date_fin, statut, <b>#id_etablissement</b>, <b>#id_incident</b>, <b>#id_staff_decideur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_incident -> INCIDENT ; id_staff_decideur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_incident, id_staff_decideur</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_06_finance
+title MRD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>FRAIS_SCOLAIRE</b> ( <u>id_frais_scolaire</u>, code, libelle, montant, obligatoire,
+        periodicite, est_actif, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b>, <b><i>#id_niveau</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_niveau -> NIVEAU</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, id_niveau, code) WHERE id_niveau IS NOT NULL ; (id_annee_scolaire, code) WHERE id_niveau IS NULL</color>
+
+<b>ECHEANCE</b> ( <u>id_echeance</u>, libelle, date_limite, montant, mois_concerne,
+        <b>#id_etablissement</b>, <b>#id_frais_scolaire</b>, <b><i>#id_periode</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_frais_scolaire -> FRAIS_SCOLAIRE ; id_periode -> PERIODE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_frais_scolaire, id_periode</color>
+
+<b>CREANCE</b> ( <u>id_creance</u>, montant_du, remise, remise_reduction, motif_remise,
+        statut, date_creation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_echeance</b>,
+        <b><i>#id_staff_remise</i></b>, <b><i>#id_regle_reduction</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_echeance -> ECHEANCE ; id_staff_remise -> STAFF ; id_regle_reduction -> REGLE_REDUCTION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_echeance, id_staff_remise, id_regle_reduction</color>
+<color:#555555>   UNIQUE : (id_inscription, id_echeance)</color>
+
+<b>MODE_PAIEMENT</b> ( <u>id_mode_paiement</u>, code, libelle, est_actif, <b><i>#id_etablissement</i></b>,
+        <b><i>#id_fournisseur_paiement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>PAIEMENT</b> ( <u>id_paiement</u>, numero, montant, date_paiement, canal,
+        reference_externe, nom_payeur, telephone_payeur, statut, date_validation,
+        observation, <b>#id_etablissement</b>, <b>#id_mode_paiement</b>, <b><i>#id_parent_payeur</i></b>, <b><i>#id_staff_enregistreur</i></b>,
+        <b><i>#id_transaction_en_ligne</i></b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_mode_paiement -> MODE_PAIEMENT ; id_parent_payeur -> PARENT ; id_staff_enregistreur -> STAFF ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_enregistreur, id_staff_validateur, id_transaction_en_ligne</color>
+<color:#555555>   UNIQUE : (id_transaction_en_ligne) ; (id_etablissement, numero)</color>
+
+<b>ALLOCATION_PAIEMENT</b> ( <u>id_allocation_paiement</u>, montant_alloue, date_allocation, <b>#id_etablissement</b>, <b>#id_paiement</b>,
+        <b>#id_creance</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_paiement -> PAIEMENT ; id_creance -> CREANCE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_creance</color>
+<color:#555555>   UNIQUE : (id_paiement, id_creance)</color>
+
+<b>RECU</b> ( <u>id_recu</u>, numero, nom_payeur, montant, devise,
+        detail, code_verification, date_emission, fichier, statut,
+        <b>#id_paiement</b>, <b>#id_etablissement</b>, <b><i>#id_staff_emetteur</i></b> )
+<color:#555555>   FK : id_paiement -> PAIEMENT ; id_etablissement -> ETABLISSEMENT ; id_staff_emetteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_staff_emetteur</color>
+<color:#555555>   UNIQUE : (code_verification) ; (id_paiement) WHERE statut = 'VALIDE' ; (id_etablissement, numero)</color>
+
+<b>ANNULATION_PAIEMENT</b> ( <u>id_annulation_paiement</u>, motif, statut, date_demande, date_decision,
+        <b>#id_etablissement</b>, <b>#id_paiement</b>, <b>#id_staff_demandeur</b>, <b><i>#id_staff_approbateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_paiement -> PAIEMENT ; id_staff_demandeur -> STAFF ; id_staff_approbateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_staff_demandeur, id_staff_approbateur</color>
+<color:#555555>   UNIQUE : (id_paiement) WHERE statut IN ('DEMANDEE','APPROUVEE')</color>
+
+<b>REGLE_REDUCTION</b> ( <u>id_regle_reduction</u>, libelle, type_reduction, rang_enfant_min, mode_calcul,
+        valeur, est_active, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b>, <b><i>#id_frais_scolaire</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_frais_scolaire -> FRAIS_SCOLAIRE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_frais_scolaire</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_07_transversal
+title MRD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>NOTIFICATION</b> ( <u>id_notification</u>, type_notification, titre, message, priorite,
+        entite_type, entite_id, est_lue, date_lecture, date_creation,
+        <b>#id_utilisateur</b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT</color>
+
+<b>DEMANDE</b> ( <u>id_demande</u>, type_demande, objet, description, statut,
+        reponse, date_demande, date_traitement, <b>#id_etablissement</b>, <b>#id_utilisateur_demandeur</b>,
+        <b><i>#id_eleve</i></b>, <b><i>#id_staff_traitant</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur_demandeur -> UTILISATEUR ; id_eleve -> ELEVE ; id_staff_traitant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_staff_traitant</color>
+
+<b>RAPPORT</b> ( <u>id_rapport</u>, titre, type_rapport, periode_debut, periode_fin,
+        parametres, format_fichier, fichier, date_generation, <b>#id_etablissement</b>,
+        <b><i>#id_domaine</i></b>, <b>#id_utilisateur_generateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_domaine -> DOMAINE ; id_utilisateur_generateur -> UTILISATEUR</color>
+
+<b>JOURNAL_AUDIT</b> ( <u>id_journal_audit</u>, type_operation, entite_type, entite_id, anciennes_valeurs,
+        nouvelles_valeurs, adresse_ip, date_action, <b><i>#id_utilisateur</i></b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT</color>
+
+<b>PARAMETRE_SYSTEME</b> ( <u>id_parametre_systeme</u>, cle, valeur, description, date_modification,
+        <b><i>#id_etablissement</i></b>, <b><i>#id_utilisateur_modificateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur_modificateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_etablissement, cle) WHERE id_etablissement IS NOT NULL ; (cle) WHERE id_etablissement IS NULL</color>
+
+<b>ENVOI_NOTIFICATION</b> ( <u>id_envoi_notification</u>, canal, destination, fournisseur_envoi, reference_fournisseur,
+        statut, tentatives, cout, devise, code_erreur,
+        date_creation, date_envoi, date_distribution, <b>#id_notification</b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_notification -> NOTIFICATION ; id_etablissement -> ETABLISSEMENT</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_08_bibliotheque
+title MRD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>CATEGORIE_RESSOURCE</b> ( <u>id_categorie_ressource</u>, code, libelle, description, est_active,
+        <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>RESSOURCE_NUMERIQUE</b> ( <u>id_ressource_numerique</u>, titre, auteur, editeur, annee_publication,
+        isbn, description, type_ressource, fichier, url,
+        format, langue, licence, statut, date_ajout,
+        date_publication, <b>#id_etablissement</b>, <b><i>#id_categorie_ressource</i></b>, <b><i>#id_matiere</i></b>, <b>#id_staff_auteur</b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_categorie_ressource -> CATEGORIE_RESSOURCE ; id_matiere -> MATIERE ; id_staff_auteur -> STAFF ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_matiere, id_staff_auteur, id_staff_validateur</color>
+
+<b>RESSOURCE_DIFFUSION</b> ( <u>id_ressource_diffusion</u>, date_debut, date_fin, rendu_attendu, date_limite_rendu,
+        date_creation, <b>#id_etablissement</b>, <b>#id_ressource_numerique</b>, <b><i>#id_niveau</i></b>, <b><i>#id_classe</i></b>,
+        <b>#id_staff_diffuseur</b>, <b><i>#id_evaluation</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_numerique -> RESSOURCE_NUMERIQUE ; id_niveau -> NIVEAU ; id_classe -> CLASSE ; id_staff_diffuseur -> STAFF ; id_evaluation -> EVALUATION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_numerique, id_niveau, id_classe, id_staff_diffuseur, id_evaluation</color>
+
+<b>CONSULTATION_RESSOURCE</b> ( <u>id_consultation_ressource</u>, type_consultation, date_consultation, <b>#id_etablissement</b>, <b>#id_ressource_numerique</b>,
+        <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_numerique -> RESSOURCE_NUMERIQUE ; id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_numerique</color>
+
+<b>RENDU_TRAVAIL</b> ( <u>id_rendu_travail</u>, fichier, commentaire_eleve, date_rendu, statut,
+        commentaire_correction, date_correction, <b>#id_etablissement</b>, <b>#id_ressource_diffusion</b>, <b>#id_inscription</b>,
+        <b><i>#id_staff_correcteur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_diffusion -> RESSOURCE_DIFFUSION ; id_inscription -> INSCRIPTION ; id_staff_correcteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_diffusion, id_inscription, id_staff_correcteur</color>
+<color:#555555>   UNIQUE : (id_ressource_diffusion, id_inscription)</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_09_paiement_en_ligne
+title MRD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>FOURNISSEUR_PAIEMENT</b> ( <u>id_fournisseur_paiement</u>, code, libelle, type_fournisseur, supporte_partage,
+        est_actif )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>PAYS</b> ( <u>id_pays</u>, code_iso, nom, indicatif_telephonique, devise )
+<color:#555555>   UNIQUE : (indicatif_telephonique) ; (code_iso)</color>
+
+<b>FOURNISSEUR_PAYS</b> ( <u>id_fournisseur_pays</u>, prefixes_numero, est_actif, <b>#id_fournisseur_paiement</b>, <b>#id_pays</b> )
+<color:#555555>   FK : id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT ; id_pays -> PAYS</color>
+<color:#555555>   UNIQUE : (id_fournisseur_paiement, id_pays)</color>
+
+<b>CONFIG_PAIEMENT_ETABLISSEMENT</b> ( <u>id_config_paiement_etablissement</u>, identifiant_marchand, reference_secret, environnement, frais_a_charge,
+        est_actif, date_creation, <b>#id_etablissement</b>, <b>#id_fournisseur_paiement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, id_fournisseur_paiement, environnement)</color>
+
+<b>TRANSACTION_EN_LIGNE</b> ( <u>id_transaction_en_ligne</u>, numero_telephone, reference_interne, reference_fournisseur, montant,
+        frais_operateur, taux_commission, montant_commission, mode_perception_commission, montant_total,
+        devise, taux_change, statut, code_erreur, message_erreur,
+        date_initiation, date_expiration, date_confirmation, <b>#id_etablissement</b>, <b>#id_config_paiement_etablissement</b>,
+        <b>#id_utilisateur_initiateur</b>, <b>#id_pays</b>, <b>#id_contrat_plateforme</b>, <b><i>#id_facture_commission</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_config_paiement_etablissement -> CONFIG_PAIEMENT_ETABLISSEMENT ; id_utilisateur_initiateur -> UTILISATEUR ; id_pays -> PAYS ; id_contrat_plateforme -> CONTRAT_PLATEFORME ; id_facture_commission -> FACTURE_COMMISSION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_config_paiement_etablissement, id_contrat_plateforme, id_facture_commission</color>
+<color:#555555>   UNIQUE : (reference_interne) ; (id_config_paiement_etablissement, reference_fournisseur) WHERE reference_fournisseur IS NOT NULL</color>
+
+<b>TRANSACTION_CREANCE</b> ( <u>id_transaction_creance</u>, montant, <b>#id_etablissement</b>, <b>#id_transaction_en_ligne</b>, <b>#id_creance</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE ; id_creance -> CREANCE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_transaction_en_ligne, id_creance</color>
+<color:#555555>   UNIQUE : (id_transaction_en_ligne, id_creance)</color>
+
+<b>NOTIFICATION_FOURNISSEUR</b> ( <u>id_notification_fournisseur</u>, reference_fournisseur, contenu_brut, signature_valide, adresse_ip,
+        statut_traitement, date_reception, date_traitement, <b>#id_fournisseur_paiement</b>, <b><i>#id_transaction_en_ligne</i></b> )
+<color:#555555>   FK : id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE</color>
+
+<b>CONTRAT_PLATEFORME</b> ( <u>id_contrat_plateforme</u>, reference_contrat, taux_commission, commission_a_charge, date_debut,
+        date_fin, statut, <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+
+<b>FACTURE_COMMISSION</b> ( <u>id_facture_commission</u>, numero, mois, montant_total, devise,
+        statut, date_emission, date_echeance, date_paiement, fichier,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (numero) ; (id_etablissement, mois) WHERE statut <> 'ANNULEE'</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml
+@startuml MRD_10_authentification
+title MRD - 10 - Authentification, sessions et carte eleve
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>APPAREIL_CONFIANCE</b> ( <u>id_appareil_confiance</u>, empreinte_appareil, nom_appareil, date_ajout, derniere_utilisation,
+        date_expiration, date_revocation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_utilisateur, empreinte_appareil)</color>
+
+<b>SESSION_UTILISATEUR</b> ( <u>id_session_utilisateur</u>, role_actif, empreinte_jeton, adresse_ip, agent_utilisateur,
+        date_creation, date_expiration, derniere_activite, date_revocation, <b>#id_utilisateur</b>,
+        <b><i>#id_appareil_confiance</i></b>, <b><i>#id_etablissement_actif</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_appareil_confiance -> APPAREIL_CONFIANCE ; id_etablissement_actif -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (empreinte_jeton)</color>
+
+<b>CODE_VERIFICATION</b> ( <u>id_code_verification</u>, canal, objet, destination, empreinte_code,
+        tentatives, date_creation, date_expiration, date_utilisation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+
+<b>CARTE_ELEVE</b> ( <u>id_carte_eleve</u>, numero_carte, empreinte_jeton_qr, date_emission, date_expiration,
+        statut, fichier, motif_revocation, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_inscription</b>, <b><i>#id_document</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_inscription -> INSCRIPTION ; id_document -> DOCUMENT</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_inscription, id_document</color>
+<color:#555555>   UNIQUE : (empreinte_jeton_qr) ; (id_document) ; (id_etablissement, numero_carte) ; (id_eleve) WHERE statut = 'ACTIVE'</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

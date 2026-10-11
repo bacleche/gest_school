@@ -1,0 +1,2412 @@
+' ============================================================
+' MLD - SYSTEME DE GESTION SCOLAIRE (PlantUML, diagramme ER)
+' Modele logique relationnel avec types, PK, FK, contraintes.
+' 11 pages : vue d'ensemble + 10 domaines fonctionnels.
+' Rendu conseille : plantuml -tsvg (ou PLANTUML_LIMIT_SIZE=16384 pour PNG)
+' ============================================================
+@startuml MLD_00_vue_ensemble
+title MLD - Vue d'ensemble (cles uniquement)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+' Vue d'ensemble compacte : sinon l'image depasse 4096 px et l'editeur la coupe
+skinparam nodesep 25
+skinparam ranksep 50
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+package "1 - Noyau, comptes et permissions" {
+entity "ETABLISSEMENT" as ETABLISSEMENT {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF {
+  * id_staff : BIGINT <<PK>>
+}
+entity "DOMAINE" as DOMAINE {
+  * id_domaine : BIGINT <<PK>>
+}
+entity "TYPE_ACTION" as TYPE_ACTION {
+  * id_type_action : BIGINT <<PK>>
+}
+entity "ROLE" as ROLE {
+  * id_role : BIGINT <<PK>>
+}
+entity "ROLE_PERMISSION" as ROLE_PERMISSION {
+  * id_role_permission : BIGINT <<PK>>
+}
+entity "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  * id_attribution_role : BIGINT <<PK>>
+}
+entity "PERMISSION" as PERMISSION {
+  * id_permission : BIGINT <<PK>>
+}
+entity "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  * id_attribution_permission : BIGINT <<PK>>
+}
+}
+package "2 - Structure academique et emploi du temps" {
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE {
+  * id_periode : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE {
+  * id_classe : BIGINT <<PK>>
+}
+entity "MATIERE" as MATIERE {
+  * id_matiere : BIGINT <<PK>>
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT {
+  * id_enseignement : BIGINT <<PK>>
+}
+entity "CRENEAU" as CRENEAU {
+  * id_creneau : BIGINT <<PK>>
+}
+entity "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  * id_affectation_enseignant : BIGINT <<PK>>
+}
+entity "SALLE" as SALLE {
+  * id_salle : BIGINT <<PK>>
+}
+}
+package "3 - Secretariat : eleves, parents, inscriptions, documents" {
+entity "PARENT" as PARENT {
+  * id_parent : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "ELEVE_PARENT" as ELEVE_PARENT {
+  * id_eleve_parent : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  * id_type_document : BIGINT <<PK>>
+}
+entity "DOCUMENT" as DOCUMENT {
+  * id_document : BIGINT <<PK>>
+}
+entity "FAMILLE" as FAMILLE {
+  * id_famille : BIGINT <<PK>>
+}
+}
+package "4 - Responsabilite pedagogique : evaluations et resultats" {
+entity "TYPE_EVALUATION" as TYPE_EVALUATION {
+  * id_type_evaluation : BIGINT <<PK>>
+}
+entity "EVALUATION" as EVALUATION {
+  * id_evaluation : BIGINT <<PK>>
+}
+entity "NOTE" as NOTE {
+  * id_note : BIGINT <<PK>>
+}
+entity "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  * id_historique_note : BIGINT <<PK>>
+}
+entity "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  * id_resultat_matiere : BIGINT <<PK>>
+}
+entity "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  * id_resultat_periode : BIGINT <<PK>>
+}
+entity "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  * id_resultat_annuel : BIGINT <<PK>>
+}
+entity "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  * id_derogation_acces_resultat : BIGINT <<PK>>
+}
+}
+package "5 - Surveillance : presences, incidents, discipline" {
+entity "PRESENCE" as PRESENCE {
+  * id_presence : BIGINT <<PK>>
+}
+entity "TYPE_INCIDENT" as TYPE_INCIDENT {
+  * id_type_incident : BIGINT <<PK>>
+}
+entity "INCIDENT" as INCIDENT {
+  * id_incident : BIGINT <<PK>>
+}
+entity "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  * id_observation_incident : BIGINT <<PK>>
+}
+entity "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  * id_decision_disciplinaire : BIGINT <<PK>>
+}
+}
+package "6 - Finance : frais, paiements, recus" {
+entity "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  * id_frais_scolaire : BIGINT <<PK>>
+}
+entity "ECHEANCE" as ECHEANCE {
+  * id_echeance : BIGINT <<PK>>
+}
+entity "CREANCE" as CREANCE {
+  * id_creance : BIGINT <<PK>>
+}
+entity "MODE_PAIEMENT" as MODE_PAIEMENT {
+  * id_mode_paiement : BIGINT <<PK>>
+}
+entity "PAIEMENT" as PAIEMENT {
+  * id_paiement : BIGINT <<PK>>
+}
+entity "ALLOCATION_PAIEMENT" as ALLOCATION_PAIEMENT {
+  * id_allocation_paiement : BIGINT <<PK>>
+}
+entity "RECU" as RECU {
+  * id_recu : BIGINT <<PK>>
+}
+entity "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  * id_annulation_paiement : BIGINT <<PK>>
+}
+entity "REGLE_REDUCTION" as REGLE_REDUCTION {
+  * id_regle_reduction : BIGINT <<PK>>
+}
+}
+package "7 - Transversal : notifications, demandes, rapports, audit" {
+entity "NOTIFICATION" as NOTIFICATION {
+  * id_notification : BIGINT <<PK>>
+}
+entity "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  * id_envoi_notification : BIGINT <<PK>>
+}
+entity "DEMANDE" as DEMANDE {
+  * id_demande : BIGINT <<PK>>
+}
+entity "RAPPORT" as RAPPORT {
+  * id_rapport : BIGINT <<PK>>
+}
+entity "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  * id_journal_audit : BIGINT <<PK>>
+}
+entity "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  * id_parametre_systeme : BIGINT <<PK>>
+}
+}
+package "8 - Bibliotheque numerique : ressources, diffusions, rendus" {
+entity "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  * id_categorie_ressource : BIGINT <<PK>>
+}
+entity "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  * id_ressource_numerique : BIGINT <<PK>>
+}
+entity "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  * id_ressource_diffusion : BIGINT <<PK>>
+}
+entity "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  * id_consultation_ressource : BIGINT <<PK>>
+}
+entity "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  * id_rendu_travail : BIGINT <<PK>>
+}
+}
+package "9 - Finance : paiement en ligne (Mobile Money, agregateurs)" {
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+}
+entity "PAYS" as PAYS {
+  * id_pays : BIGINT <<PK>>
+}
+entity "FOURNISSEUR_PAYS" as FOURNISSEUR_PAYS {
+  * id_fournisseur_pays : BIGINT <<PK>>
+}
+entity "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  * id_config_paiement_etablissement : BIGINT <<PK>>
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+}
+entity "TRANSACTION_CREANCE" as TRANSACTION_CREANCE {
+  * id_transaction_creance : BIGINT <<PK>>
+}
+entity "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  * id_notification_fournisseur : BIGINT <<PK>>
+}
+entity "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  * id_contrat_plateforme : BIGINT <<PK>>
+}
+entity "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  * id_facture_commission : BIGINT <<PK>>
+}
+}
+package "10 - Authentification, sessions et carte eleve" {
+entity "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  * id_appareil_confiance : BIGINT <<PK>>
+}
+entity "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  * id_session_utilisateur : BIGINT <<PK>>
+}
+entity "CODE_VERIFICATION" as CODE_VERIFICATION {
+  * id_code_verification : BIGINT <<PK>>
+}
+entity "CARTE_ELEVE" as CARTE_ELEVE {
+  * id_carte_eleve : BIGINT <<PK>>
+}
+}
+UTILISATEUR ||--o{ STAFF : "id_utilisateur"
+ETABLISSEMENT ||--o{ STAFF : "id_etablissement"
+STAFF |o--o{ STAFF : "id_staff_createur"
+DOMAINE ||--o{ PERMISSION : "id_domaine"
+TYPE_ACTION ||--o{ PERMISSION : "id_type_action"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_beneficiaire"
+PERMISSION ||--o{ ATTRIBUTION_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_attribuant"
+ETABLISSEMENT |o--o{ ROLE : "id_etablissement"
+ROLE ||--o{ ROLE_PERMISSION : "id_role"
+PERMISSION ||--o{ ROLE_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_beneficiaire"
+ROLE ||--o{ ATTRIBUTION_ROLE : "id_role"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_attribuant"
+ETABLISSEMENT ||--o{ ANNEE_SCOLAIRE : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ PERIODE : "id_annee_scolaire"
+ETABLISSEMENT ||--o{ NIVEAU : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ CLASSE : "id_annee_scolaire"
+NIVEAU ||--o{ CLASSE : "id_niveau"
+STAFF |o--o{ CLASSE : "id_staff_titulaire"
+ETABLISSEMENT ||--o{ MATIERE : "id_etablissement"
+CLASSE ||--o{ ENSEIGNEMENT : "id_classe"
+MATIERE ||--o{ ENSEIGNEMENT : "id_matiere"
+ENSEIGNEMENT ||--o{ AFFECTATION_ENSEIGNANT : "id_enseignement"
+STAFF ||--o{ AFFECTATION_ENSEIGNANT : "id_staff_enseignant"
+ENSEIGNEMENT ||--o{ CRENEAU : "id_enseignement"
+ETABLISSEMENT ||--o{ SALLE : "id_etablissement"
+SALLE |o--o{ CLASSE : "id_salle"
+SALLE |o--o{ CRENEAU : "id_salle"
+UTILISATEUR ||--o| PARENT : "id_utilisateur"
+ETABLISSEMENT ||--o{ ELEVE : "id_etablissement"
+ETABLISSEMENT ||--o{ FAMILLE : "id_etablissement"
+PARENT |o--o{ FAMILLE : "id_parent_referent"
+FAMILLE |o--o{ ELEVE : "id_famille"
+UTILISATEUR |o--o{ ELEVE : "id_utilisateur"
+ELEVE ||--o{ ELEVE_PARENT : "id_eleve"
+PARENT ||--o{ ELEVE_PARENT : "id_parent"
+ELEVE ||--o{ INSCRIPTION : "id_eleve"
+CLASSE ||--o{ INSCRIPTION : "id_classe"
+ANNEE_SCOLAIRE ||--o{ INSCRIPTION : "id_annee_scolaire"
+STAFF ||--o{ INSCRIPTION : "id_staff_createur"
+STAFF |o--o{ INSCRIPTION : "id_staff_validateur"
+ELEVE ||--o{ DOCUMENT : "id_eleve"
+ETABLISSEMENT |o--o{ TYPE_DOCUMENT : "id_etablissement"
+TYPE_DOCUMENT ||--o{ DOCUMENT : "id_type_document"
+STAFF |o--o{ DOCUMENT : "id_staff_auteur"
+ENSEIGNEMENT ||--o{ EVALUATION : "id_enseignement"
+PERIODE ||--o{ EVALUATION : "id_periode"
+ETABLISSEMENT |o--o{ TYPE_EVALUATION : "id_etablissement"
+TYPE_EVALUATION ||--o{ EVALUATION : "id_type_evaluation"
+STAFF ||--o{ EVALUATION : "id_staff_createur"
+STAFF |o--o{ EVALUATION : "id_staff_validateur"
+EVALUATION ||--o{ NOTE : "id_evaluation"
+INSCRIPTION ||--o{ NOTE : "id_inscription"
+STAFF ||--o{ NOTE : "id_staff_saisie"
+NOTE ||--o{ HISTORIQUE_NOTE : "id_note"
+STAFF ||--o{ HISTORIQUE_NOTE : "id_staff_modificateur"
+INSCRIPTION ||--o{ RESULTAT_MATIERE : "id_inscription"
+ENSEIGNEMENT ||--o{ RESULTAT_MATIERE : "id_enseignement"
+PERIODE ||--o{ RESULTAT_MATIERE : "id_periode"
+INSCRIPTION ||--o{ RESULTAT_PERIODE : "id_inscription"
+PERIODE ||--o{ RESULTAT_PERIODE : "id_periode"
+STAFF |o--o{ RESULTAT_PERIODE : "id_staff_validateur"
+INSCRIPTION ||--o| RESULTAT_ANNUEL : "id_inscription"
+NIVEAU |o--o{ RESULTAT_ANNUEL : "id_niveau_propose"
+STAFF |o--o{ RESULTAT_ANNUEL : "id_staff_validateur"
+INSCRIPTION ||--o{ DEROGATION_ACCES_RESULTAT : "id_inscription"
+PERIODE |o--o{ DEROGATION_ACCES_RESULTAT : "id_periode"
+STAFF ||--o{ DEROGATION_ACCES_RESULTAT : "id_staff_accordant"
+INSCRIPTION ||--o{ PRESENCE : "id_inscription"
+CRENEAU |o--o{ PRESENCE : "id_creneau"
+STAFF ||--o{ PRESENCE : "id_staff_enregistreur"
+INSCRIPTION ||--o{ INCIDENT : "id_inscription"
+ETABLISSEMENT |o--o{ TYPE_INCIDENT : "id_etablissement"
+TYPE_INCIDENT ||--o{ INCIDENT : "id_type_incident"
+STAFF ||--o{ INCIDENT : "id_staff_signalant"
+STAFF |o--o{ INCIDENT : "id_staff_examinateur"
+INCIDENT ||--o{ OBSERVATION_INCIDENT : "id_incident"
+STAFF ||--o{ OBSERVATION_INCIDENT : "id_staff_auteur"
+INCIDENT ||--o{ DECISION_DISCIPLINAIRE : "id_incident"
+STAFF ||--o{ DECISION_DISCIPLINAIRE : "id_staff_decideur"
+ANNEE_SCOLAIRE ||--o{ FRAIS_SCOLAIRE : "id_annee_scolaire"
+NIVEAU |o--o{ FRAIS_SCOLAIRE : "id_niveau"
+FRAIS_SCOLAIRE ||--o{ ECHEANCE : "id_frais_scolaire"
+PERIODE |o--o{ ECHEANCE : "id_periode"
+INSCRIPTION ||--o{ CREANCE : "id_inscription"
+ECHEANCE ||--o{ CREANCE : "id_echeance"
+ANNEE_SCOLAIRE ||--o{ REGLE_REDUCTION : "id_annee_scolaire"
+FRAIS_SCOLAIRE |o--o{ REGLE_REDUCTION : "id_frais_scolaire"
+REGLE_REDUCTION |o--o{ CREANCE : "id_regle_reduction"
+STAFF |o--o{ CREANCE : "id_staff_remise"
+ETABLISSEMENT ||--o{ PAIEMENT : "id_etablissement"
+ETABLISSEMENT |o--o{ MODE_PAIEMENT : "id_etablissement"
+MODE_PAIEMENT ||--o{ PAIEMENT : "id_mode_paiement"
+FOURNISSEUR_PAIEMENT |o--o{ MODE_PAIEMENT : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o| PAIEMENT : "id_transaction_en_ligne"
+PARENT |o--o{ PAIEMENT : "id_parent_payeur"
+STAFF |o--o{ PAIEMENT : "id_staff_enregistreur"
+STAFF |o--o{ PAIEMENT : "id_staff_validateur"
+PAIEMENT ||--o{ ALLOCATION_PAIEMENT : "id_paiement"
+CREANCE ||--o{ ALLOCATION_PAIEMENT : "id_creance"
+PAIEMENT ||--o{ RECU : "id_paiement"
+STAFF |o--o{ RECU : "id_staff_emetteur"
+ETABLISSEMENT ||--o{ RECU : "id_etablissement"
+PAIEMENT ||--o{ ANNULATION_PAIEMENT : "id_paiement"
+STAFF ||--o{ ANNULATION_PAIEMENT : "id_staff_demandeur"
+STAFF |o--o{ ANNULATION_PAIEMENT : "id_staff_approbateur"
+UTILISATEUR ||--o{ NOTIFICATION : "id_utilisateur"
+ETABLISSEMENT |o--o{ NOTIFICATION : "id_etablissement"
+NOTIFICATION ||--o{ ENVOI_NOTIFICATION : "id_notification"
+ETABLISSEMENT |o--o{ ENVOI_NOTIFICATION : "id_etablissement"
+ETABLISSEMENT ||--o{ DEMANDE : "id_etablissement"
+UTILISATEUR ||--o{ DEMANDE : "id_utilisateur_demandeur"
+ELEVE |o--o{ DEMANDE : "id_eleve"
+STAFF |o--o{ DEMANDE : "id_staff_traitant"
+ETABLISSEMENT ||--o{ RAPPORT : "id_etablissement"
+DOMAINE |o--o{ RAPPORT : "id_domaine"
+UTILISATEUR ||--o{ RAPPORT : "id_utilisateur_generateur"
+UTILISATEUR |o--o{ JOURNAL_AUDIT : "id_utilisateur"
+ETABLISSEMENT |o--o{ JOURNAL_AUDIT : "id_etablissement"
+ETABLISSEMENT |o--o{ PARAMETRE_SYSTEME : "id_etablissement"
+UTILISATEUR |o--o{ PARAMETRE_SYSTEME : "id_utilisateur_modificateur"
+ETABLISSEMENT |o--o{ CATEGORIE_RESSOURCE : "id_etablissement"
+ETABLISSEMENT ||--o{ RESSOURCE_NUMERIQUE : "id_etablissement"
+CATEGORIE_RESSOURCE |o--o{ RESSOURCE_NUMERIQUE : "id_categorie_ressource"
+MATIERE |o--o{ RESSOURCE_NUMERIQUE : "id_matiere"
+STAFF ||--o{ RESSOURCE_NUMERIQUE : "id_staff_auteur"
+STAFF |o--o{ RESSOURCE_NUMERIQUE : "id_staff_validateur"
+RESSOURCE_NUMERIQUE ||--o{ RESSOURCE_DIFFUSION : "id_ressource_numerique"
+NIVEAU |o--o{ RESSOURCE_DIFFUSION : "id_niveau"
+CLASSE |o--o{ RESSOURCE_DIFFUSION : "id_classe"
+STAFF ||--o{ RESSOURCE_DIFFUSION : "id_staff_diffuseur"
+EVALUATION |o--o{ RESSOURCE_DIFFUSION : "id_evaluation"
+RESSOURCE_NUMERIQUE ||--o{ CONSULTATION_RESSOURCE : "id_ressource_numerique"
+UTILISATEUR ||--o{ CONSULTATION_RESSOURCE : "id_utilisateur"
+RESSOURCE_DIFFUSION ||--o{ RENDU_TRAVAIL : "id_ressource_diffusion"
+INSCRIPTION ||--o{ RENDU_TRAVAIL : "id_inscription"
+STAFF |o--o{ RENDU_TRAVAIL : "id_staff_correcteur"
+ETABLISSEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_etablissement"
+FOURNISSEUR_PAIEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_fournisseur_paiement"
+FOURNISSEUR_PAIEMENT ||--o{ FOURNISSEUR_PAYS : "id_fournisseur_paiement"
+PAYS ||--o{ FOURNISSEUR_PAYS : "id_pays"
+CONFIG_PAIEMENT_ETABLISSEMENT ||--o{ TRANSACTION_EN_LIGNE : "id_config_paiement_etablissement"
+UTILISATEUR ||--o{ TRANSACTION_EN_LIGNE : "id_utilisateur_initiateur"
+PAYS ||--o{ TRANSACTION_EN_LIGNE : "id_pays"
+TRANSACTION_EN_LIGNE ||--o{ TRANSACTION_CREANCE : "id_transaction_en_ligne"
+CREANCE ||--o{ TRANSACTION_CREANCE : "id_creance"
+FOURNISSEUR_PAIEMENT ||--o{ NOTIFICATION_FOURNISSEUR : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o{ NOTIFICATION_FOURNISSEUR : "id_transaction_en_ligne"
+ETABLISSEMENT ||--o{ CONTRAT_PLATEFORME : "id_etablissement"
+ETABLISSEMENT ||--o{ FACTURE_COMMISSION : "id_etablissement"
+CONTRAT_PLATEFORME ||--o{ TRANSACTION_EN_LIGNE : "id_contrat_plateforme"
+FACTURE_COMMISSION |o--o{ TRANSACTION_EN_LIGNE : "id_facture_commission"
+UTILISATEUR ||--o{ APPAREIL_CONFIANCE : "id_utilisateur"
+UTILISATEUR ||--o{ SESSION_UTILISATEUR : "id_utilisateur"
+APPAREIL_CONFIANCE |o--o{ SESSION_UTILISATEUR : "id_appareil_confiance"
+ETABLISSEMENT |o--o{ SESSION_UTILISATEUR : "id_etablissement_actif"
+UTILISATEUR ||--o{ CODE_VERIFICATION : "id_utilisateur"
+ELEVE ||--o{ CARTE_ELEVE : "id_eleve"
+INSCRIPTION ||--o{ CARTE_ELEVE : "id_inscription"
+DOCUMENT |o--o| CARTE_ELEVE : "id_document"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_01_noyau
+title MLD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "ETABLISSEMENT" as ETABLISSEMENT {
+  * id_etablissement : BIGINT <<PK>>
+  --
+  * code : VARCHAR(20) UNIQUE
+  * nom : VARCHAR(200)
+  type_etablissement : VARCHAR(30)
+  adresse : VARCHAR(255)
+  ville : VARCHAR(100)
+  pays : VARCHAR(100)
+  telephone : VARCHAR(30)
+  email : VARCHAR(254)
+  logo : VARCHAR(255)
+  * devise : VARCHAR(10) DEFAULT 'XAF'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+}
+entity "UTILISATEUR" as UTILISATEUR {
+  * id_utilisateur : BIGINT <<PK>>
+  --
+  email : VARCHAR(254) UNIQUE
+  mot_de_passe_hash : VARCHAR(255)
+  * nom : VARCHAR(100)
+  * prenom : VARCHAR(100)
+  telephone : VARCHAR(20) UNIQUE
+  identifiant : VARCHAR(50) UNIQUE
+  photo : VARCHAR(255)
+  * est_admin_systeme : BOOLEAN DEFAULT FALSE
+  * statut_compte : VARCHAR(25) IN (EN_ATTENTE_ACTIVATION,ACTIF,SUSPENDU,DESACTIVE) DEFAULT 'EN_ATTENTE_ACTIVATION'
+  derniere_connexion : TIMESTAMP
+  * tentatives_echec : SMALLINT DEFAULT 0
+  verrouille_jusqu_a : TIMESTAMP
+  date_changement_mdp : TIMESTAMP
+  telephone_verifie_le : TIMESTAMP
+  email_verifie_le : TIMESTAMP
+  * doit_changer_mdp : BOOLEAN DEFAULT FALSE
+  * type_secret : VARCHAR(12) IN (MOT_DE_PASSE,PIN) DEFAULT 'MOT_DE_PASSE'
+  * methode_2fa : VARCHAR(12) IN (AUCUNE,APPLICATION,SMS) DEFAULT 'AUCUNE'
+  reference_secret_2fa : VARCHAR(200)
+  * canal_notification_prefere : VARCHAR(12) IN (WHATSAPP,SMS,EMAIL,APPLICATION) DEFAULT 'WHATSAPP'
+  date_anonymisation : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (tentatives_echec >= 0)
+  CHECK (telephone IS NOT NULL OR email IS NOT NULL OR identifiant IS NOT NULL)
+  CHECK (statut_compte <> 'ACTIF' OR mot_de_passe_hash IS NOT NULL)
+  NB : compte cree par l'ecole en EN_ATTENTE_ACTIVATION ; ACTIF apres code + choix du mot de passe ou du PIN
+  CHECK (methode_2fa <> 'APPLICATION' OR reference_secret_2fa IS NOT NULL)
+  CHECK (telephone au format international E.164, ex. +2376XXXXXXXX (trigger))
+  CHECK (compte STAFF ou PARENT => telephone renseigne ; compte ELEVE => identifiant renseigne (trigger))
+  CHECK (PIN autorise seulement pour PARENT et ELEVE (trigger))
+  CHECK (double authentification obligatoire si DIRECTEUR ou droits FINANCE / VALIDATION (trigger))
+  NB : connexion staff/parent par telephone (e-mail en option) ; eleve par identifiant ou QR code de sa carte
+  NB : mot_de_passe_hash = empreinte Argon2id du mot de passe ou du PIN ; reference_secret_2fa pointe vers le coffre
+  NB : UTILISATEUR commun ; visible (RLS) seulement s'il est STAFF, PARENT ou ELEVE de l'etablissement
+}
+entity "STAFF" as STAFF {
+  * id_staff : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * id_etablissement : BIGINT <<FK>>
+  id_staff_createur : BIGINT <<FK>>
+  * type_staff : VARCHAR(20) IN (DIRECTEUR,ADMINISTRATION,ENSEIGNANT)
+  * matricule : VARCHAR(30)
+  fonction : VARCHAR(100)
+  specialite : VARCHAR(100)
+  date_embauche : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (ACTIF,SUSPENDU,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, matricule)
+  UNIQUE (id_utilisateur, id_etablissement)
+  FK composites (+ id_etablissement) : id_staff_createur
+}
+entity "DOMAINE" as DOMAINE {
+  * id_domaine : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+}
+entity "TYPE_ACTION" as TYPE_ACTION {
+  * id_type_action : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  * categorie : VARCHAR(20) IN (CONSULTATION,GESTION,VALIDATION,SUIVI,PRODUCTION,ADMINISTRATION,DECISION)
+}
+entity "PERMISSION" as PERMISSION {
+  * id_permission : BIGINT <<PK>>
+  --
+  * id_domaine : BIGINT <<FK>>
+  * id_type_action : BIGINT <<FK>>
+  * code : VARCHAR(80) UNIQUE
+  * libelle : VARCHAR(150)
+  ressource : VARCHAR(50)
+  description : VARCHAR(255)
+}
+entity "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  * id_attribution_permission : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_staff_beneficiaire : BIGINT <<FK>>
+  * id_permission : BIGINT <<FK>>
+  * id_staff_attribuant : BIGINT <<FK>>
+  * date_attribution : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_expiration : TIMESTAMP
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_staff_beneficiaire, id_permission) WHERE est_active = TRUE
+  CHECK (id_staff_attribuant <> id_staff_beneficiaire)
+  CHECK (l'attribuant possede cette permission ou est DIRECTEUR (trigger))
+  FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant
+}
+entity "ROLE" as ROLE {
+  * id_role : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(50)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+}
+entity "ROLE_PERMISSION" as ROLE_PERMISSION {
+  * id_role_permission : BIGINT <<PK>>
+  --
+  * id_role : BIGINT <<FK>>
+  * id_permission : BIGINT <<FK>>
+  ..
+  UNIQUE (id_role, id_permission)
+  NB : isolee via ROLE (RLS du role)
+}
+entity "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  * id_attribution_role : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_staff_beneficiaire : BIGINT <<FK>>
+  * id_role : BIGINT <<FK>>
+  * id_staff_attribuant : BIGINT <<FK>>
+  * date_attribution : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_expiration : TIMESTAMP
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_staff_beneficiaire, id_role) WHERE est_active = TRUE
+  CHECK (role global ou du meme etablissement que le staff (trigger))
+  CHECK (id_staff_attribuant <> id_staff_beneficiaire)
+  CHECK (l'attribuant possede toutes les permissions du role ou est DIRECTEUR (trigger))
+  FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant
+}
+UTILISATEUR ||--o{ STAFF : "id_utilisateur"
+ETABLISSEMENT ||--o{ STAFF : "id_etablissement"
+STAFF |o--o{ STAFF : "id_staff_createur"
+DOMAINE ||--o{ PERMISSION : "id_domaine"
+TYPE_ACTION ||--o{ PERMISSION : "id_type_action"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_beneficiaire"
+PERMISSION ||--o{ ATTRIBUTION_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_attribuant"
+ETABLISSEMENT |o--o{ ROLE : "id_etablissement"
+ROLE ||--o{ ROLE_PERMISSION : "id_role"
+PERMISSION ||--o{ ROLE_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_beneficiaire"
+ROLE ||--o{ ATTRIBUTION_ROLE : "id_role"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_attribuant"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_02_academique
+title MLD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  * id_annee_scolaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * libelle : VARCHAR(20)
+  * date_debut : DATE
+  * date_fin : DATE
+  * statut : VARCHAR(20) IN (PLANIFIEE,EN_COURS,CLOTUREE) DEFAULT 'PLANIFIEE'
+  ..
+  UNIQUE (id_etablissement, libelle)
+  UNIQUE (id_etablissement) WHERE statut = 'EN_COURS'
+  CHECK (date_fin > date_debut)
+  CHECK (annee CLOTUREE => donnees de l'annee en lecture seule, sauf encaissement des creances impayees (trigger))
+}
+entity "PERIODE" as PERIODE {
+  * id_periode : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * libelle : VARCHAR(50)
+  * numero : SMALLINT
+  * date_debut : DATE
+  * date_fin : DATE
+  * statut : VARCHAR(20) IN (A_VENIR,EN_COURS,CLOTUREE) DEFAULT 'A_VENIR'
+  ..
+  UNIQUE (id_annee_scolaire, numero)
+  UNIQUE (id_annee_scolaire) WHERE statut = 'EN_COURS'
+  CHECK (date_fin > date_debut)
+  CHECK (periode incluse dans son annee scolaire (trigger))
+  EXCLUDE USING gist (id_annee_scolaire WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  CHECK (periode CLOTUREE => evaluations, notes, presences et resultats de la periode en lecture seule (trigger))
+  FK composites (+ id_etablissement) : id_annee_scolaire
+}
+entity "NIVEAU" as NIVEAU {
+  * id_niveau : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(20)
+  * libelle : VARCHAR(100)
+  cycle : VARCHAR(30)
+  * ordre : SMALLINT
+  ..
+  UNIQUE (id_etablissement, code)
+}
+entity "CLASSE" as CLASSE {
+  * id_classe : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * id_niveau : BIGINT <<FK>>
+  id_staff_titulaire : BIGINT <<FK>>
+  id_salle : BIGINT <<FK>>
+  * nom : VARCHAR(50)
+  effectif_max : SMALLINT
+  * statut : VARCHAR(20) IN (ACTIVE,ARCHIVEE) DEFAULT 'ACTIVE'
+  ..
+  UNIQUE (id_annee_scolaire, nom)
+  UNIQUE (id_classe, id_annee_scolaire) (cible de la FK composite d'INSCRIPTION)
+  CHECK (effectif_max > 0)
+  CHECK (nombre d'inscriptions VALIDEE <= effectif_max (trigger))
+  CHECK (titulaire de type ENSEIGNANT (trigger))
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau, id_staff_titulaire, id_salle
+}
+entity "MATIERE" as MATIERE {
+  * id_matiere : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(20)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code)
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT {
+  * id_enseignement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_classe : BIGINT <<FK>>
+  * id_matiere : BIGINT <<FK>>
+  * coefficient : DECIMAL(4,2) DEFAULT 1
+  volume_horaire_hebdo : DECIMAL(4,1)
+  date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (ACTIF,TERMINE) DEFAULT 'ACTIF'
+  ..
+  UNIQUE (id_classe, id_matiere)
+  FK composites (+ id_etablissement) : id_classe, id_matiere
+}
+entity "CRENEAU" as CRENEAU {
+  * id_creneau : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  id_salle : BIGINT <<FK>>
+  * jour_semaine : SMALLINT
+  * heure_debut : TIME
+  * heure_fin : TIME
+  * date_debut : DATE
+  date_fin : DATE
+  ..
+  UNIQUE (id_enseignement, jour_semaine, heure_debut, date_debut)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  CHECK (validite du creneau incluse dans l'annee scolaire (trigger))
+  CHECK (jour_semaine BETWEEN 1 AND 7)
+  CHECK (heure_fin > heure_debut)
+  CHECK (aucun chevauchement horaire pour une meme classe, un meme enseignant, une meme salle, sur une meme periode de validite (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_salle
+}
+entity "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  * id_affectation_enseignant : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_staff_enseignant : BIGINT <<FK>>
+  * type_affectation : VARCHAR(20) IN (TITULAIRE,REMPLACANT) DEFAULT 'TITULAIRE'
+  * date_debut : DATE
+  date_fin : DATE
+  motif : VARCHAR(255)
+  ..
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  EXCLUDE USING gist (id_enseignement WITH =, type_affectation WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  CHECK (staff de type ENSEIGNANT (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_staff_enseignant
+}
+entity "SALLE" as SALLE {
+  * id_salle : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  libelle : VARCHAR(100)
+  capacite : SMALLINT
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code)
+  CHECK (capacite IS NULL OR capacite > 0)
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+ETABLISSEMENT ||--o{ ANNEE_SCOLAIRE : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ PERIODE : "id_annee_scolaire"
+ETABLISSEMENT ||--o{ NIVEAU : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ CLASSE : "id_annee_scolaire"
+NIVEAU ||--o{ CLASSE : "id_niveau"
+STAFF |o--o{ CLASSE : "id_staff_titulaire"
+ETABLISSEMENT ||--o{ MATIERE : "id_etablissement"
+CLASSE ||--o{ ENSEIGNEMENT : "id_classe"
+MATIERE ||--o{ ENSEIGNEMENT : "id_matiere"
+ENSEIGNEMENT ||--o{ AFFECTATION_ENSEIGNANT : "id_enseignement"
+STAFF ||--o{ AFFECTATION_ENSEIGNANT : "id_staff_enseignant"
+ENSEIGNEMENT ||--o{ CRENEAU : "id_enseignement"
+ETABLISSEMENT ||--o{ SALLE : "id_etablissement"
+SALLE |o--o{ CLASSE : "id_salle"
+SALLE |o--o{ CRENEAU : "id_salle"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_03_scolarite
+title MLD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "PARENT" as PARENT {
+  * id_parent : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>> UNIQUE
+  profession : VARCHAR(100)
+  employeur : VARCHAR(150)
+  adresse : VARCHAR(255)
+  telephone_secondaire : VARCHAR(30)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : PARENT commun ; visible (RLS) seulement via ELEVE_PARENT vers un eleve de l'etablissement
+}
+entity "ELEVE" as ELEVE {
+  * id_eleve : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_utilisateur : BIGINT <<FK>>
+  id_famille : BIGINT <<FK>>
+  * matricule : VARCHAR(30)
+  * nom : VARCHAR(100)
+  * prenom : VARCHAR(100)
+  * sexe : CHAR(1) IN (M,F)
+  * date_naissance : DATE
+  lieu_naissance : VARCHAR(100)
+  nationalite : VARCHAR(60)
+  adresse : VARCHAR(255)
+  photo : VARCHAR(255)
+  * consentement_photo : BOOLEAN DEFAULT FALSE
+  date_consentement_photo : TIMESTAMP
+  date_anonymisation : TIMESTAMP
+  * statut : VARCHAR(20) IN (ACTIF,TRANSFERE,DIPLOME,EXCLU,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, matricule)
+  UNIQUE (id_utilisateur, id_etablissement)
+  CHECK (photo IS NULL OR consentement_photo)
+  NB : transfert = nouvelle fiche ELEVE dans l'autre ecole, meme compte et meme identifiant de connexion
+  NB : ARCHIVE depuis plus de DUREE_CONSERVATION_ANNEES => anonymisation (identite, photo, adresse, contacts) ;
+  NB : scolarite et paiements conserves sous pseudonyme (traitement planifie, trace dans JOURNAL_AUDIT)
+  NB : nom/prenom conserves ici car le compte UTILISATEUR de l'eleve est facultatif
+  FK composites (+ id_etablissement) : id_famille
+}
+entity "ELEVE_PARENT" as ELEVE_PARENT {
+  * id_eleve_parent : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_parent : BIGINT <<FK>>
+  * type_lien : VARCHAR(20) IN (PERE,MERE,TUTEUR,AUTRE)
+  * est_responsable_legal : BOOLEAN DEFAULT FALSE
+  * est_responsable_financier : BOOLEAN DEFAULT FALSE
+  * est_contact_urgence : BOOLEAN DEFAULT FALSE
+  * peut_consulter : BOOLEAN DEFAULT TRUE
+  * date_debut : DATE DEFAULT CURRENT_DATE
+  date_fin : DATE
+  ..
+  UNIQUE (id_eleve, id_parent)
+  CHECK (au moins un responsable legal actif par eleve (trigger))
+  NB : acces parent (RLS) seulement si lien actif (date_fin NULL ou future) et peut_consulter = TRUE
+  FK composites (+ id_etablissement) : id_eleve
+}
+entity "INSCRIPTION" as INSCRIPTION {
+  * id_inscription : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_classe : BIGINT <<FK>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * id_staff_createur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * date_inscription : DATE
+  * type_inscription : VARCHAR(20) IN (NOUVELLE,REINSCRIPTION)
+  * statut : VARCHAR(20) IN (EN_ATTENTE,VALIDEE,REJETEE,ANNULEE,CHANGEMENT_CLASSE,ARCHIVEE) DEFAULT 'EN_ATTENTE'
+  date_validation : TIMESTAMP
+  observation : TEXT
+  ..
+  UNIQUE (id_eleve, id_annee_scolaire) WHERE statut IN ('EN_ATTENTE','VALIDEE')
+  FK (id_classe, id_annee_scolaire) -> CLASSE (id_classe, id_annee_scolaire)
+  NB : changement de classe = ancienne inscription close (CHANGEMENT_CLASSE) + nouvelle inscription ;
+  NB : notes, presences et creances deja saisies restent rattachees a l'ancienne inscription
+  NB : passage a VALIDEE => compte eleve (si absent), CARTE_ELEVE et son PDF generes automatiquement
+  FK composites (+ id_etablissement) : id_eleve, id_classe, id_annee_scolaire, id_staff_createur, id_staff_validateur
+}
+entity "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  * id_type_document : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * genere_automatiquement : BOOLEAN DEFAULT FALSE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "DOCUMENT" as DOCUMENT {
+  * id_document : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_type_document : BIGINT <<FK>>
+  id_staff_auteur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * fichier : VARCHAR(255)
+  * date_document : DATE DEFAULT CURRENT_DATE
+  * visible_parent : BOOLEAN DEFAULT FALSE
+  * visible_eleve : BOOLEAN DEFAULT FALSE
+  * statut : VARCHAR(20) IN (ACTIF,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : visible parent (RLS) si visible_parent = TRUE et lien actif ; eleve si visible_eleve = TRUE
+  NB : un document de type BULLETIN est en plus soumis a est_en_regle (blocage des impayes)
+  FK composites (+ id_etablissement) : id_eleve, id_staff_auteur
+}
+entity "FAMILLE" as FAMILLE {
+  * id_famille : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_parent_referent : BIGINT <<FK>>
+  * nom : VARCHAR(100)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : regroupe les freres et soeurs d'un etablissement (reduction famille nombreuse)
+  NB : un eleve appartient au plus a une famille ; le referent est le parent payeur habituel
+  NB : composition modifiee (inscription annulee, enfant ajoute ou retire) => recalcul des reductions
+  NB : des creances non soldees de la famille (trigger)
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE <<externe>> {
+  * id_classe : BIGINT <<PK>>
+}
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+UTILISATEUR ||--o| PARENT : "id_utilisateur"
+ETABLISSEMENT ||--o{ ELEVE : "id_etablissement"
+ETABLISSEMENT ||--o{ FAMILLE : "id_etablissement"
+PARENT |o--o{ FAMILLE : "id_parent_referent"
+FAMILLE |o--o{ ELEVE : "id_famille"
+UTILISATEUR |o--o{ ELEVE : "id_utilisateur"
+ELEVE ||--o{ ELEVE_PARENT : "id_eleve"
+PARENT ||--o{ ELEVE_PARENT : "id_parent"
+ELEVE ||--o{ INSCRIPTION : "id_eleve"
+CLASSE ||--o{ INSCRIPTION : "id_classe"
+ANNEE_SCOLAIRE ||--o{ INSCRIPTION : "id_annee_scolaire"
+STAFF ||--o{ INSCRIPTION : "id_staff_createur"
+STAFF |o--o{ INSCRIPTION : "id_staff_validateur"
+ELEVE ||--o{ DOCUMENT : "id_eleve"
+ETABLISSEMENT |o--o{ TYPE_DOCUMENT : "id_etablissement"
+TYPE_DOCUMENT ||--o{ DOCUMENT : "id_type_document"
+STAFF |o--o{ DOCUMENT : "id_staff_auteur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_04_evaluation
+title MLD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 25
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "TYPE_EVALUATION" as TYPE_EVALUATION {
+  * id_type_evaluation : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * coefficient_defaut : DECIMAL(4,2) DEFAULT 1
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "EVALUATION" as EVALUATION {
+  * id_evaluation : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  * id_type_evaluation : BIGINT <<FK>>
+  * id_staff_createur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * date_evaluation : DATE
+  * note_maximale : DECIMAL(5,2) DEFAULT 20
+  * coefficient : DECIMAL(4,2) DEFAULT 1
+  * statut : VARCHAR(20) IN (BROUILLON,SOUMISE,VALIDEE,VERROUILLEE) DEFAULT 'BROUILLON'
+  date_validation : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (periode de la meme annee scolaire que la classe de l'enseignement (trigger))
+  CHECK (date_evaluation comprise dans la periode (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_periode, id_staff_createur, id_staff_validateur
+}
+entity "NOTE" as NOTE {
+  * id_note : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_evaluation : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  * id_staff_saisie : BIGINT <<FK>>
+  valeur : DECIMAL(5,2)
+  * statut_note : VARCHAR(15) IN (NOTEE,ABSENT,ABSENT_JUSTIFIE,DISPENSE) DEFAULT 'NOTEE'
+  observation : VARCHAR(255)
+  * date_saisie : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_modification : TIMESTAMP
+  ..
+  UNIQUE (id_evaluation, id_inscription)
+  CHECK (valeur >= 0 ET valeur <= evaluation.note_maximale (trigger))
+  CHECK (inscription VALIDEE dans la classe de l'enseignement evalue (trigger))
+  CHECK ((statut_note = 'NOTEE') = (valeur IS NOT NULL))
+  NB : ABSENT_JUSTIFIE et DISPENSE exclus de la moyenne ; ABSENT selon NOTE_ABSENCE_INJUSTIFIEE (ZERO ou EXCLU)
+  CHECK (aucune modification si l'evaluation est VERROUILLEE (trigger))
+  NB : visible parent/eleve (RLS) seulement si l'evaluation est VALIDEE ou VERROUILLEE (jamais bloquee par les impayes)
+  FK composites (+ id_etablissement) : id_evaluation, id_inscription, id_staff_saisie
+}
+entity "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  * id_historique_note : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_note : BIGINT <<FK>>
+  * id_staff_modificateur : BIGINT <<FK>>
+  * type_operation : VARCHAR(20) IN (CREATION,MODIFICATION,ANNULATION)
+  ancienne_valeur : DECIMAL(5,2)
+  nouvelle_valeur : DECIMAL(5,2)
+  motif : VARCHAR(255)
+  * date_modification : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+  FK composites (+ id_etablissement) : id_note, id_staff_modificateur
+}
+entity "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  * id_resultat_matiere : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  moyenne : DECIMAL(5,2)
+  rang : SMALLINT
+  appreciation : VARCHAR(255)
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE) DEFAULT 'PROVISOIRE'
+  * date_calcul : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_enseignement, id_periode)
+  CHECK (inscription dans la classe de l'enseignement, periode de l'annee de l'inscription (trigger))
+  NB : visible parent/eleve (RLS) seulement si le RESULTAT_PERIODE est PUBLIE et est_en_regle(inscription, periode)
+  FK composites (+ id_etablissement) : id_inscription, id_enseignement, id_periode
+}
+entity "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  * id_resultat_periode : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  moyenne_generale : DECIMAL(5,2)
+  rang : SMALLINT
+  mention : VARCHAR(30)
+  appreciation_generale : TEXT
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE,PUBLIE) DEFAULT 'PROVISOIRE'
+  date_validation : TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_periode)
+  CHECK (periode de l'annee de l'inscription (trigger))
+  NB : visible parent/eleve (RLS) seulement si statut = 'PUBLIE' et est_en_regle(inscription, periode) (blocage des impayes)
+  FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_validateur
+}
+entity "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  * id_resultat_annuel : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>> UNIQUE
+  id_niveau_propose : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  moyenne_annuelle : DECIMAL(5,2)
+  rang : SMALLINT
+  * decision : VARCHAR(20) IN (EN_ATTENTE,ADMIS,REDOUBLE,EXCLU,DIPLOME) DEFAULT 'EN_ATTENTE'
+  appreciation : TEXT
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE,PUBLIE) DEFAULT 'PROVISOIRE'
+  date_deliberation : DATE
+  ..
+  CHECK (decision <> 'ADMIS' OR id_niveau_propose IS NOT NULL)
+  NB : visible parent/eleve (RLS) seulement si statut = 'PUBLIE' et est_en_regle sur toute l'annee (blocage des impayes)
+  FK composites (+ id_etablissement) : id_inscription, id_niveau_propose, id_staff_validateur
+}
+entity "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  * id_derogation_acces_resultat : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  id_periode : BIGINT <<FK>>
+  * id_staff_accordant : BIGINT <<FK>>
+  * motif : TEXT
+  * date_accord : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_fin_validite : DATE
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_inscription, id_periode) WHERE est_active AND id_periode IS NOT NULL
+  UNIQUE (id_inscription) WHERE est_active AND id_periode IS NULL
+  CHECK (accordant = DIRECTEUR ou titulaire d'une permission de derogation (trigger))
+  CHECK (periode de l'annee de l'inscription (trigger))
+  NB : id_periode vide = toute l'annee ; chaque derogation est tracee dans JOURNAL_AUDIT
+  NB : est_en_regle(inscription, periode) = blocage desactive OU derogation active OU reste du
+  NB : des creances obligatoires echues (date_limite <= fin de periode) <= SEUIL_TOLERANCE_IMPAYE
+  NB : bloque seulement le bulletin (resultats, moyennes, rang, decision) ; notes, presences et discipline restent visibles
+  FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_accordant
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT <<externe>> {
+  * id_enseignement : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE <<externe>> {
+  * id_periode : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+ENSEIGNEMENT ||--o{ EVALUATION : "id_enseignement"
+PERIODE ||--o{ EVALUATION : "id_periode"
+ETABLISSEMENT |o--o{ TYPE_EVALUATION : "id_etablissement"
+TYPE_EVALUATION ||--o{ EVALUATION : "id_type_evaluation"
+STAFF ||--o{ EVALUATION : "id_staff_createur"
+STAFF |o--o{ EVALUATION : "id_staff_validateur"
+EVALUATION ||--o{ NOTE : "id_evaluation"
+INSCRIPTION ||--o{ NOTE : "id_inscription"
+STAFF ||--o{ NOTE : "id_staff_saisie"
+NOTE ||--o{ HISTORIQUE_NOTE : "id_note"
+STAFF ||--o{ HISTORIQUE_NOTE : "id_staff_modificateur"
+INSCRIPTION ||--o{ RESULTAT_MATIERE : "id_inscription"
+ENSEIGNEMENT ||--o{ RESULTAT_MATIERE : "id_enseignement"
+PERIODE ||--o{ RESULTAT_MATIERE : "id_periode"
+INSCRIPTION ||--o{ RESULTAT_PERIODE : "id_inscription"
+PERIODE ||--o{ RESULTAT_PERIODE : "id_periode"
+STAFF |o--o{ RESULTAT_PERIODE : "id_staff_validateur"
+INSCRIPTION ||--o| RESULTAT_ANNUEL : "id_inscription"
+NIVEAU |o--o{ RESULTAT_ANNUEL : "id_niveau_propose"
+STAFF |o--o{ RESULTAT_ANNUEL : "id_staff_validateur"
+INSCRIPTION ||--o{ DEROGATION_ACCES_RESULTAT : "id_inscription"
+PERIODE |o--o{ DEROGATION_ACCES_RESULTAT : "id_periode"
+STAFF ||--o{ DEROGATION_ACCES_RESULTAT : "id_staff_accordant"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_05_surveillance
+title MLD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "PRESENCE" as PRESENCE {
+  * id_presence : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  id_creneau : BIGINT <<FK>>
+  * id_staff_enregistreur : BIGINT <<FK>>
+  * date_presence : DATE
+  * statut : VARCHAR(20) IN (PRESENT,ABSENT,RETARD)
+  minutes_retard : SMALLINT
+  * est_justifiee : BOOLEAN DEFAULT FALSE
+  motif : VARCHAR(255)
+  * date_enregistrement : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_creneau, date_presence) WHERE id_creneau IS NOT NULL
+  UNIQUE (id_inscription, date_presence) WHERE id_creneau IS NULL
+  CHECK (statut <> 'RETARD' OR minutes_retard > 0)
+  CHECK (statut <> 'PRESENT' OR est_justifiee = FALSE)
+  CHECK (jour de date_presence = creneau.jour_semaine et date dans la validite du creneau (trigger))
+  FK composites (+ id_etablissement) : id_inscription, id_creneau, id_staff_enregistreur
+}
+entity "TYPE_INCIDENT" as TYPE_INCIDENT {
+  * id_type_incident : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * gravite_defaut : VARCHAR(10) IN (MINEURE,MOYENNE,GRAVE) DEFAULT 'MINEURE'
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "INCIDENT" as INCIDENT {
+  * id_incident : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_type_incident : BIGINT <<FK>>
+  * id_staff_signalant : BIGINT <<FK>>
+  id_staff_examinateur : BIGINT <<FK>>
+  * date_incident : TIMESTAMP
+  lieu : VARCHAR(100)
+  * description : TEXT
+  * gravite : VARCHAR(10) IN (MINEURE,MOYENNE,GRAVE)
+  * statut : VARCHAR(20) IN (SIGNALE,EN_EXAMEN,DECIDE,CLOTURE) DEFAULT 'SIGNALE'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : un seul eleve par incident (plusieurs eleves impliques = plusieurs incidents)
+  FK composites (+ id_etablissement) : id_inscription, id_staff_signalant, id_staff_examinateur
+}
+entity "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  * id_observation_incident : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_incident : BIGINT <<FK>>
+  * id_staff_auteur : BIGINT <<FK>>
+  * contenu : TEXT
+  * date_observation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  FK composites (+ id_etablissement) : id_incident, id_staff_auteur
+}
+entity "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  * id_decision_disciplinaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_incident : BIGINT <<FK>>
+  * id_staff_decideur : BIGINT <<FK>>
+  * type_sanction : VARCHAR(30) IN (AUCUNE,AVERTISSEMENT,BLAME,RETENUE,EXCLUSION_TEMPORAIRE,EXCLUSION_DEFINITIVE)
+  description : TEXT
+  * date_decision : DATE
+  date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (PROPOSEE,APPROUVEE,APPLIQUEE,ANNULEE) DEFAULT 'PROPOSEE'
+  ..
+  CHECK (date_fin IS NULL OR date_debut IS NULL OR date_fin >= date_debut)
+  CHECK (type_sanction <> 'EXCLUSION_TEMPORAIRE' OR (date_debut IS NOT NULL AND date_fin IS NOT NULL))
+  CHECK (EXCLUSION_DEFINITIVE APPLIQUEE => eleve.statut = 'EXCLU' (trigger))
+  FK composites (+ id_etablissement) : id_incident, id_staff_decideur
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "CRENEAU" as CRENEAU <<externe>> {
+  * id_creneau : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+INSCRIPTION ||--o{ PRESENCE : "id_inscription"
+CRENEAU |o--o{ PRESENCE : "id_creneau"
+STAFF ||--o{ PRESENCE : "id_staff_enregistreur"
+INSCRIPTION ||--o{ INCIDENT : "id_inscription"
+ETABLISSEMENT |o--o{ TYPE_INCIDENT : "id_etablissement"
+TYPE_INCIDENT ||--o{ INCIDENT : "id_type_incident"
+STAFF ||--o{ INCIDENT : "id_staff_signalant"
+STAFF |o--o{ INCIDENT : "id_staff_examinateur"
+INCIDENT ||--o{ OBSERVATION_INCIDENT : "id_incident"
+STAFF ||--o{ OBSERVATION_INCIDENT : "id_staff_auteur"
+INCIDENT ||--o{ DECISION_DISCIPLINAIRE : "id_incident"
+STAFF ||--o{ DECISION_DISCIPLINAIRE : "id_staff_decideur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_06_finance
+title MLD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  * id_frais_scolaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  id_niveau : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(150)
+  * montant : DECIMAL(12,2)
+  * obligatoire : BOOLEAN DEFAULT TRUE
+  * periodicite : VARCHAR(20) IN (PONCTUEL,MENSUEL,TRIMESTRIEL,ANNUEL) DEFAULT 'ANNUEL'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_annee_scolaire, id_niveau, code) WHERE id_niveau IS NOT NULL
+  UNIQUE (id_annee_scolaire, code) WHERE id_niveau IS NULL
+  CHECK (montant >= 0)
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau
+}
+entity "ECHEANCE" as ECHEANCE {
+  * id_echeance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_frais_scolaire : BIGINT <<FK>>
+  id_periode : BIGINT <<FK>>
+  * libelle : VARCHAR(100)
+  * date_limite : DATE
+  * montant : DECIMAL(12,2)
+  mois_concerne : DATE
+  ..
+  CHECK (montant >= 0)
+  CHECK (somme des echeances = frais_scolaire.montant (trigger))
+  CHECK (mois_concerne IS NULL OR EXTRACT(DAY FROM mois_concerne) = 1)
+  NB : mois_concerne = mois couvert (frais MENSUEL) pour afficher les mois payes / impayes
+  FK composites (+ id_etablissement) : id_frais_scolaire, id_periode
+}
+entity "CREANCE" as CREANCE {
+  * id_creance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_echeance : BIGINT <<FK>>
+  id_staff_remise : BIGINT <<FK>>
+  id_regle_reduction : BIGINT <<FK>>
+  * montant_du : DECIMAL(12,2)
+  * remise : DECIMAL(12,2) DEFAULT 0
+  * remise_reduction : DECIMAL(12,2) DEFAULT 0
+  motif_remise : VARCHAR(255)
+  * statut : VARCHAR(20) IN (DUE,PARTIELLE,SOLDEE,ANNULEE) DEFAULT 'DUE'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_echeance)
+  CHECK (remise >= 0 AND remise_reduction >= 0 AND remise + remise_reduction <= montant_du)
+  CHECK ((remise_reduction = 0) = (id_regle_reduction IS NULL))
+  CHECK (remise = 0 OR (motif_remise IS NOT NULL AND id_staff_remise IS NOT NULL))
+  CHECK (echeance de l'annee de l'inscription, frais du niveau de la classe ou commun (trigger))
+  CHECK (reduction : regle de l'annee et rang de l'eleve dans sa famille >= rang_enfant_min (trigger))
+  NB : reste du = montant_du - remise - remise_reduction - allocations (vue SITUATION_FINANCIERE_ELEVE)
+  NB : visible (RLS) par les parents/tuteurs actifs et l'eleve concerne : mois payes, partiels, impayes
+  FK composites (+ id_etablissement) : id_inscription, id_echeance, id_staff_remise, id_regle_reduction
+}
+entity "MODE_PAIEMENT" as MODE_PAIEMENT {
+  * id_mode_paiement : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  id_fournisseur_paiement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "PAIEMENT" as PAIEMENT {
+  * id_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_mode_paiement : BIGINT <<FK>>
+  id_parent_payeur : BIGINT <<FK>>
+  id_staff_enregistreur : BIGINT <<FK>>
+  id_transaction_en_ligne : BIGINT <<FK>> UNIQUE
+  id_staff_validateur : BIGINT <<FK>>
+  * numero : VARCHAR(40)
+  * montant : DECIMAL(12,2)
+  * date_paiement : TIMESTAMP
+  * canal : VARCHAR(10) IN (GUICHET,EN_LIGNE) DEFAULT 'GUICHET'
+  reference_externe : VARCHAR(100)
+  nom_payeur : VARCHAR(150)
+  telephone_payeur : VARCHAR(30)
+  * statut : VARCHAR(20) IN (EN_ATTENTE,VALIDE,ANNULE) DEFAULT 'EN_ATTENTE'
+  date_validation : TIMESTAMP
+  observation : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, numero)
+  CHECK (montant > 0)
+  CHECK (canal = 'EN_LIGNE' OR id_staff_enregistreur IS NOT NULL)
+  CHECK (id_parent_payeur IS NOT NULL OR nom_payeur IS NOT NULL)
+  NB : un paiement peut regler les creances de plusieurs enfants (paiement famille)
+  CHECK ((canal = 'EN_LIGNE') = (id_transaction_en_ligne IS NOT NULL))
+  NB : paiement EN_LIGNE cree automatiquement (VALIDE) a partir d'une TRANSACTION_EN_LIGNE REUSSIE
+  FK composites (+ id_etablissement) : id_staff_enregistreur, id_staff_validateur, id_transaction_en_ligne
+}
+entity "ALLOCATION_PAIEMENT" as ALLOCATION_PAIEMENT {
+  * id_allocation_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_paiement : BIGINT <<FK>>
+  * id_creance : BIGINT <<FK>>
+  * montant_alloue : DECIMAL(12,2)
+  * date_allocation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_paiement, id_creance)
+  CHECK (montant_alloue > 0)
+  CHECK (somme allouee <= paiement.montant et <= montant_du - remise - remise_reduction (trigger))
+  CHECK (parent payeur renseigne => responsable financier de l'eleve de la creance (trigger))
+  FK composites (+ id_etablissement) : id_paiement, id_creance
+}
+entity "RECU" as RECU {
+  * id_recu : BIGINT <<PK>>
+  --
+  * id_paiement : BIGINT <<FK>>
+  * id_etablissement : BIGINT <<FK>>
+  id_staff_emetteur : BIGINT <<FK>>
+  * numero : VARCHAR(40)
+  * nom_payeur : VARCHAR(150)
+  * montant : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * detail : JSONB
+  * code_verification : VARCHAR(32) UNIQUE
+  * date_emission : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  fichier : VARCHAR(255)
+  * statut : VARCHAR(20) IN (VALIDE,ANNULE) DEFAULT 'VALIDE'
+  ..
+  UNIQUE (id_paiement) WHERE statut = 'VALIDE'
+  CHECK (id_staff_emetteur renseigne sauf recu automatique d'un paiement EN_LIGNE (trigger))
+  CHECK (montant = paiement.montant (trigger))
+  NB : meme recu pour GUICHET et EN_LIGNE : electronique (PDF) et imprimable
+  NB : contenu fige a l'emission (detail : eleves, mois/echeances payes, montants, reste du, mode, canal)
+  NB : code_verification (QR code) pour verifier l'authenticite d'un recu imprime
+  NB : visible (RLS) par les parents/tuteurs actifs et les eleves concernes par les creances payees
+  UNIQUE (id_etablissement, numero)
+  FK composites (+ id_etablissement) : id_paiement, id_staff_emetteur
+}
+entity "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  * id_annulation_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_paiement : BIGINT <<FK>>
+  * id_staff_demandeur : BIGINT <<FK>>
+  id_staff_approbateur : BIGINT <<FK>>
+  * motif : TEXT
+  * statut : VARCHAR(20) IN (DEMANDEE,APPROUVEE,REJETEE) DEFAULT 'DEMANDEE'
+  * date_demande : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_decision : TIMESTAMP
+  ..
+  UNIQUE (id_paiement) WHERE statut IN ('DEMANDEE','APPROUVEE')
+  NB : une correction = annulation approuvee + nouveau paiement
+  FK composites (+ id_etablissement) : id_paiement, id_staff_demandeur, id_staff_approbateur
+}
+entity "REGLE_REDUCTION" as REGLE_REDUCTION {
+  * id_regle_reduction : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  id_frais_scolaire : BIGINT <<FK>>
+  * libelle : VARCHAR(150)
+  * type_reduction : VARCHAR(20) IN (FRATRIE,AUTRE) DEFAULT 'FRATRIE'
+  * rang_enfant_min : SMALLINT DEFAULT 2
+  * mode_calcul : VARCHAR(12) IN (POURCENTAGE,MONTANT)
+  * valeur : DECIMAL(12,2)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  CHECK (valeur > 0)
+  CHECK (mode_calcul <> 'POURCENTAGE' OR valeur <= 100)
+  CHECK (rang_enfant_min >= 1)
+  NB : FRATRIE = reduction a partir du N-ieme enfant de la famille inscrit sur l'annee (du plus age au plus jeune)
+  NB : appliquee automatiquement a la creation des creances ; id_frais_scolaire vide = tous les frais
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_frais_scolaire
+}
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE <<externe>> {
+  * id_periode : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "PARENT" as PARENT <<externe>> {
+  * id_parent : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE <<externe>> {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+}
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT <<externe>> {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+}
+ANNEE_SCOLAIRE ||--o{ FRAIS_SCOLAIRE : "id_annee_scolaire"
+NIVEAU |o--o{ FRAIS_SCOLAIRE : "id_niveau"
+FRAIS_SCOLAIRE ||--o{ ECHEANCE : "id_frais_scolaire"
+PERIODE |o--o{ ECHEANCE : "id_periode"
+INSCRIPTION ||--o{ CREANCE : "id_inscription"
+ECHEANCE ||--o{ CREANCE : "id_echeance"
+ANNEE_SCOLAIRE ||--o{ REGLE_REDUCTION : "id_annee_scolaire"
+FRAIS_SCOLAIRE |o--o{ REGLE_REDUCTION : "id_frais_scolaire"
+REGLE_REDUCTION |o--o{ CREANCE : "id_regle_reduction"
+STAFF |o--o{ CREANCE : "id_staff_remise"
+ETABLISSEMENT ||--o{ PAIEMENT : "id_etablissement"
+ETABLISSEMENT |o--o{ MODE_PAIEMENT : "id_etablissement"
+MODE_PAIEMENT ||--o{ PAIEMENT : "id_mode_paiement"
+FOURNISSEUR_PAIEMENT |o--o{ MODE_PAIEMENT : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o| PAIEMENT : "id_transaction_en_ligne"
+PARENT |o--o{ PAIEMENT : "id_parent_payeur"
+STAFF |o--o{ PAIEMENT : "id_staff_enregistreur"
+STAFF |o--o{ PAIEMENT : "id_staff_validateur"
+PAIEMENT ||--o{ ALLOCATION_PAIEMENT : "id_paiement"
+CREANCE ||--o{ ALLOCATION_PAIEMENT : "id_creance"
+PAIEMENT ||--o{ RECU : "id_paiement"
+STAFF |o--o{ RECU : "id_staff_emetteur"
+ETABLISSEMENT ||--o{ RECU : "id_etablissement"
+PAIEMENT ||--o{ ANNULATION_PAIEMENT : "id_paiement"
+STAFF ||--o{ ANNULATION_PAIEMENT : "id_staff_demandeur"
+STAFF |o--o{ ANNULATION_PAIEMENT : "id_staff_approbateur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_07_transversal
+title MLD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "NOTIFICATION" as NOTIFICATION {
+  * id_notification : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * type_notification : VARCHAR(40)
+  * titre : VARCHAR(200)
+  * message : TEXT
+  * priorite : VARCHAR(10) IN (BASSE,NORMALE,HAUTE,URGENTE) DEFAULT 'NORMALE'
+  entite_type : VARCHAR(50)
+  entite_id : BIGINT
+  * est_lue : BOOLEAN DEFAULT FALSE
+  date_lecture : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : entite_type/entite_id = reference generique sans FK (cible verifiee par l'application)
+}
+entity "DEMANDE" as DEMANDE {
+  * id_demande : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_utilisateur_demandeur : BIGINT <<FK>>
+  id_eleve : BIGINT <<FK>>
+  id_staff_traitant : BIGINT <<FK>>
+  * type_demande : VARCHAR(40)
+  * objet : VARCHAR(200)
+  * description : TEXT
+  * statut : VARCHAR(20) IN (EN_ATTENTE,EN_COURS,APPROUVEE,REJETEE,CLOTUREE) DEFAULT 'EN_ATTENTE'
+  reponse : TEXT
+  * date_demande : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_traitement : TIMESTAMP
+  ..
+  CHECK (demandeur parent => id_eleve parmi ses enfants (ELEVE_PARENT) (trigger))
+  FK composites (+ id_etablissement) : id_eleve, id_staff_traitant
+}
+entity "RAPPORT" as RAPPORT {
+  * id_rapport : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_domaine : BIGINT <<FK>>
+  * id_utilisateur_generateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * type_rapport : VARCHAR(50)
+  periode_debut : DATE
+  periode_fin : DATE
+  parametres : TEXT
+  * format_fichier : VARCHAR(10) IN (PDF,XLSX,CSV)
+  fichier : VARCHAR(255)
+  * date_generation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : id_domaine NULL = rapport multi-domaines (tableau de bord)
+}
+entity "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  * id_journal_audit : BIGINT <<PK>>
+  --
+  id_utilisateur : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * type_operation : VARCHAR(50)
+  * entite_type : VARCHAR(80)
+  entite_id : BIGINT
+  anciennes_valeurs : TEXT
+  nouvelles_valeurs : TEXT
+  adresse_ip : VARCHAR(45)
+  * date_action : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : entite_type/entite_id = reference generique sans FK (conservee meme si la cible est archivee)
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+}
+entity "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  * id_parametre_systeme : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  id_utilisateur_modificateur : BIGINT <<FK>>
+  * cle : VARCHAR(100)
+  * valeur : TEXT
+  description : VARCHAR(255)
+  * date_modification : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, cle) WHERE id_etablissement IS NOT NULL
+  UNIQUE (cle) WHERE id_etablissement IS NULL
+  NB : cles BLOCAGE_RESULTATS_IMPAYES (defaut FALSE) et SEUIL_TOLERANCE_IMPAYE (montant, defaut 0)
+  NB : cles NOTE_ABSENCE_INJUSTIFIEE (ZERO ou EXCLU) et DUREE_CONSERVATION_ANNEES (defaut 10)
+}
+entity "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  * id_envoi_notification : BIGINT <<PK>>
+  --
+  * id_notification : BIGINT <<FK>>
+  id_etablissement : BIGINT <<FK>>
+  * canal : VARCHAR(12) IN (APPLICATION,WHATSAPP,SMS,EMAIL)
+  * destination : VARCHAR(254)
+  fournisseur_envoi : VARCHAR(50)
+  reference_fournisseur : VARCHAR(100)
+  * statut : VARCHAR(12) IN (EN_ATTENTE,ENVOYE,DISTRIBUE,ECHEC) DEFAULT 'EN_ATTENTE'
+  * tentatives : SMALLINT DEFAULT 0
+  cout : DECIMAL(10,2)
+  devise : VARCHAR(3)
+  code_erreur : VARCHAR(50)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_envoi : TIMESTAMP
+  date_distribution : TIMESTAMP
+  ..
+  CHECK (tentatives >= 0 AND (cout IS NULL OR cout >= 0))
+  CHECK (statut <> 'DISTRIBUE' OR date_distribution IS NOT NULL)
+  NB : canal choisi selon canal_notification_prefere ; WhatsApp d'abord, SMS en secours
+  NB : cout facture a l'etablissement ; rapport mensuel des couts d'envoi par etablissement
+  NB : visible par le personnel de l'etablissement et l'admin systeme (RLS)
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE <<externe>> {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "DOMAINE" as DOMAINE <<externe>> {
+  * id_domaine : BIGINT <<PK>>
+}
+UTILISATEUR ||--o{ NOTIFICATION : "id_utilisateur"
+ETABLISSEMENT |o--o{ NOTIFICATION : "id_etablissement"
+NOTIFICATION ||--o{ ENVOI_NOTIFICATION : "id_notification"
+ETABLISSEMENT |o--o{ ENVOI_NOTIFICATION : "id_etablissement"
+ETABLISSEMENT ||--o{ DEMANDE : "id_etablissement"
+UTILISATEUR ||--o{ DEMANDE : "id_utilisateur_demandeur"
+ELEVE |o--o{ DEMANDE : "id_eleve"
+STAFF |o--o{ DEMANDE : "id_staff_traitant"
+ETABLISSEMENT ||--o{ RAPPORT : "id_etablissement"
+DOMAINE |o--o{ RAPPORT : "id_domaine"
+UTILISATEUR ||--o{ RAPPORT : "id_utilisateur_generateur"
+UTILISATEUR |o--o{ JOURNAL_AUDIT : "id_utilisateur"
+ETABLISSEMENT |o--o{ JOURNAL_AUDIT : "id_etablissement"
+ETABLISSEMENT |o--o{ PARAMETRE_SYSTEME : "id_etablissement"
+UTILISATEUR |o--o{ PARAMETRE_SYSTEME : "id_utilisateur_modificateur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_08_bibliotheque
+title MLD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  * id_categorie_ressource : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  * id_ressource_numerique : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_categorie_ressource : BIGINT <<FK>>
+  id_matiere : BIGINT <<FK>>
+  * id_staff_auteur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  auteur : VARCHAR(150)
+  editeur : VARCHAR(150)
+  annee_publication : SMALLINT
+  isbn : VARCHAR(20)
+  description : TEXT
+  * type_ressource : VARCHAR(20) IN (LIVRE,MANUEL,COURS,EXERCICE,VIDEO,AUDIO,AUTRE)
+  fichier : VARCHAR(255)
+  url : VARCHAR(500)
+  * format : VARCHAR(10) IN (PDF,EPUB,DOCX,MP4,MP3,LIEN,AUTRE)
+  langue : VARCHAR(10)
+  * licence : VARCHAR(20) IN (LECTURE_SEULE,TELECHARGEABLE) DEFAULT 'LECTURE_SEULE'
+  * statut : VARCHAR(20) IN (BROUILLON,SOUMISE,PUBLIEE,ARCHIVEE) DEFAULT 'BROUILLON'
+  * date_ajout : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_publication : TIMESTAMP
+  ..
+  CHECK (fichier IS NOT NULL OR url IS NOT NULL)
+  CHECK (id_staff_validateur IS NULL OR id_staff_validateur <> id_staff_auteur)
+  CHECK (statut <> 'PUBLIEE' OR date_publication IS NOT NULL)
+  CHECK (publication sans validateur seulement si toutes ses diffusions visent une classe de l'auteur (trigger))
+  NB : droits via le DOMAINE 'BIBLIOTHEQUE' (permissions AJOUTER, VALIDER, CONSULTER)
+  FK composites (+ id_etablissement) : id_matiere, id_staff_auteur, id_staff_validateur
+}
+entity "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  * id_ressource_diffusion : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_numerique : BIGINT <<FK>>
+  id_niveau : BIGINT <<FK>>
+  id_classe : BIGINT <<FK>>
+  * id_staff_diffuseur : BIGINT <<FK>>
+  id_evaluation : BIGINT <<FK>>
+  * date_debut : DATE
+  date_fin : DATE
+  * rendu_attendu : BOOLEAN DEFAULT FALSE
+  date_limite_rendu : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (id_niveau IS NULL OR id_classe IS NULL)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  CHECK (NOT rendu_attendu OR id_classe IS NOT NULL)
+  CHECK (rendu_attendu OR date_limite_rendu IS NULL)
+  CHECK (diffusion a une classe : diffuseur affecte a cette classe ou habilite (trigger))
+  CHECK (diffusion a un niveau ou a l'etablissement => ressource validee, id_staff_validateur renseigne (trigger))
+  CHECK (id_evaluation IS NULL OR rendu_attendu)
+  CHECK (evaluation d'un enseignement de la classe visee (trigger))
+  NB : niveau et classe vides = tout l'etablissement ; date_fin vide = sans limite
+  NB : visible eleve/parent (RLS) si ressource PUBLIEE et diffusion en cours visant son etablissement, niveau ou classe
+  FK composites (+ id_etablissement) : id_ressource_numerique, id_niveau, id_classe, id_staff_diffuseur, id_evaluation
+}
+entity "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  * id_consultation_ressource : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_numerique : BIGINT <<FK>>
+  * id_utilisateur : BIGINT <<FK>>
+  * type_consultation : VARCHAR(20) IN (LECTURE,TELECHARGEMENT)
+  * date_consultation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (type_consultation <> 'TELECHARGEMENT' OR licence de la ressource = 'TELECHARGEABLE' (trigger))
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+  FK composites (+ id_etablissement) : id_ressource_numerique
+}
+entity "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  * id_rendu_travail : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_diffusion : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  id_staff_correcteur : BIGINT <<FK>>
+  * fichier : VARCHAR(255)
+  commentaire_eleve : TEXT
+  * date_rendu : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * statut : VARCHAR(20) IN (RENDU,CORRIGE) DEFAULT 'RENDU'
+  commentaire_correction : TEXT
+  date_correction : TIMESTAMP
+  ..
+  UNIQUE (id_ressource_diffusion, id_inscription)
+  CHECK (statut <> 'CORRIGE' OR (id_staff_correcteur IS NOT NULL AND date_correction IS NOT NULL))
+  CHECK (diffusion avec rendu_attendu = TRUE et inscription active dans la classe visee (trigger))
+  NB : facultatif (utilise seulement si rendu_attendu) ; note via id_evaluation de la diffusion -> NOTE
+  NB : retard = date_rendu > date_limite_rendu (calcule a l'affichage, non stocke)
+  FK composites (+ id_etablissement) : id_ressource_diffusion, id_inscription, id_staff_correcteur
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "MATIERE" as MATIERE <<externe>> {
+  * id_matiere : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE <<externe>> {
+  * id_classe : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "EVALUATION" as EVALUATION <<externe>> {
+  * id_evaluation : BIGINT <<PK>>
+}
+ETABLISSEMENT |o--o{ CATEGORIE_RESSOURCE : "id_etablissement"
+ETABLISSEMENT ||--o{ RESSOURCE_NUMERIQUE : "id_etablissement"
+CATEGORIE_RESSOURCE |o--o{ RESSOURCE_NUMERIQUE : "id_categorie_ressource"
+MATIERE |o--o{ RESSOURCE_NUMERIQUE : "id_matiere"
+STAFF ||--o{ RESSOURCE_NUMERIQUE : "id_staff_auteur"
+STAFF |o--o{ RESSOURCE_NUMERIQUE : "id_staff_validateur"
+RESSOURCE_NUMERIQUE ||--o{ RESSOURCE_DIFFUSION : "id_ressource_numerique"
+NIVEAU |o--o{ RESSOURCE_DIFFUSION : "id_niveau"
+CLASSE |o--o{ RESSOURCE_DIFFUSION : "id_classe"
+STAFF ||--o{ RESSOURCE_DIFFUSION : "id_staff_diffuseur"
+EVALUATION |o--o{ RESSOURCE_DIFFUSION : "id_evaluation"
+RESSOURCE_NUMERIQUE ||--o{ CONSULTATION_RESSOURCE : "id_ressource_numerique"
+UTILISATEUR ||--o{ CONSULTATION_RESSOURCE : "id_utilisateur"
+RESSOURCE_DIFFUSION ||--o{ RENDU_TRAVAIL : "id_ressource_diffusion"
+INSCRIPTION ||--o{ RENDU_TRAVAIL : "id_inscription"
+STAFF |o--o{ RENDU_TRAVAIL : "id_staff_correcteur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_09_paiement_en_ligne
+title MLD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  * type_fournisseur : VARCHAR(20) IN (OPERATEUR,AGREGATEUR)
+  * supporte_partage : BOOLEAN DEFAULT FALSE
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  NB : nouveau fournisseur = une ligne + un adaptateur applicatif (aucune modification de la base)
+  NB : referentiel commun, modifiable par l'admin systeme seulement
+}
+entity "PAYS" as PAYS {
+  * id_pays : BIGINT <<PK>>
+  --
+  * code_iso : CHAR(2) UNIQUE
+  * nom : VARCHAR(100)
+  * indicatif_telephonique : VARCHAR(5) UNIQUE
+  * devise : VARCHAR(3)
+  ..
+  CHECK (char_length(devise) = 3)
+  NB : pays et devise deduits de l'indicatif du numero saisi (ex. XAF zone CEMAC, XOF zone UEMOA)
+  NB : XAF et XOF a parite fixe 1:1 (toutes deux arrimees a l'euro)
+}
+entity "FOURNISSEUR_PAYS" as FOURNISSEUR_PAYS {
+  * id_fournisseur_pays : BIGINT <<PK>>
+  --
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  * id_pays : BIGINT <<FK>>
+  prefixes_numero : VARCHAR(100)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_fournisseur_paiement, id_pays)
+  NB : prefixes_numero = prefixes du reseau, pour proposer l'operateur a partir du numero
+}
+entity "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  * id_config_paiement_etablissement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  * identifiant_marchand : VARCHAR(100)
+  * reference_secret : VARCHAR(200)
+  * environnement : VARCHAR(10) IN (TEST,PRODUCTION) DEFAULT 'TEST'
+  * frais_a_charge : VARCHAR(15) IN (PARENT,ETABLISSEMENT) DEFAULT 'PARENT'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, id_fournisseur_paiement, environnement)
+  NB : compte marchand propre a l'etablissement (l'argent va directement a l'ecole)
+  NB : aucune cle API en base : reference_secret = nom du secret dans le coffre (gestionnaire de secrets)
+  NB : lisible seulement par l'admin systeme et le DIRECTEUR (RLS)
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_config_paiement_etablissement : BIGINT <<FK>>
+  * id_utilisateur_initiateur : BIGINT <<FK>>
+  * id_pays : BIGINT <<FK>>
+  * id_contrat_plateforme : BIGINT <<FK>>
+  id_facture_commission : BIGINT <<FK>>
+  * numero_telephone : VARCHAR(20)
+  * reference_interne : VARCHAR(64) UNIQUE
+  reference_fournisseur : VARCHAR(100)
+  * montant : DECIMAL(12,2)
+  * frais_operateur : DECIMAL(12,2) DEFAULT 0
+  * taux_commission : DECIMAL(5,2)
+  * montant_commission : DECIMAL(12,2) DEFAULT 0
+  * mode_perception_commission : VARCHAR(12) IN (PARTAGE,FACTURATION)
+  * montant_total : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * taux_change : DECIMAL(12,6) DEFAULT 1
+  * statut : VARCHAR(15) IN (INITIEE,EN_ATTENTE,REUSSIE,ECHOUEE,EXPIREE) DEFAULT 'INITIEE'
+  code_erreur : VARCHAR(50)
+  message_erreur : VARCHAR(255)
+  * date_initiation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_confirmation : TIMESTAMP
+  ..
+  UNIQUE (id_config_paiement_etablissement, reference_fournisseur) WHERE reference_fournisseur IS NOT NULL
+  CHECK (montant > 0 AND frais_operateur >= 0 AND taux_change > 0)
+  CHECK (date_expiration > date_initiation)
+  CHECK (taux_commission >= 0 AND montant_commission >= 0)
+  CHECK (id_facture_commission IS NULL OR mode_perception_commission = 'FACTURATION')
+  NB : taux_commission fige depuis le contrat actif ; montant_commission arrondi a l'unite (XAF/XOF sans centimes)
+  NB : PARTAGE si le fournisseur le supporte (part ecole / part plateforme), sinon FACTURATION mensuelle
+  CHECK (statut <> 'REUSSIE' OR (reference_fournisseur IS NOT NULL AND date_confirmation IS NOT NULL))
+  CHECK (montant_total = montant + frais_operateur et montant_commission s'ils sont a la charge du PARENT (trigger))
+  CHECK (pays du numero desservi par le fournisseur ; devise = devise du pays (trigger))
+  CHECK (initiateur = parent responsable financier des eleves des creances ciblees (trigger))
+  NB : montants en devise de la transaction ; montant x taux_change = montant credite a l'etablissement
+  NB : REUSSIE seulement apres re-verification du statut aupres du fournisseur (jamais sur la seule notification)
+  NB : REUSSIE => PAIEMENT (EN_LIGNE) + ALLOCATION_PAIEMENT + RECU crees dans la meme transaction SQL
+  NB : visible par son initiateur et par le personnel finance (RLS)
+  FK composites (+ id_etablissement) : id_config_paiement_etablissement, id_contrat_plateforme, id_facture_commission
+}
+entity "TRANSACTION_CREANCE" as TRANSACTION_CREANCE {
+  * id_transaction_creance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_transaction_en_ligne : BIGINT <<FK>>
+  * id_creance : BIGINT <<FK>>
+  * montant : DECIMAL(12,2)
+  ..
+  UNIQUE (id_transaction_en_ligne, id_creance)
+  CHECK (montant > 0)
+  CHECK (somme des lignes = montant de la transaction ; montant <= reste du de la creance, reductions deduites (trigger))
+  NB : paiement partiel autorise
+  FK composites (+ id_etablissement) : id_transaction_en_ligne, id_creance
+}
+entity "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  * id_notification_fournisseur : BIGINT <<PK>>
+  --
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  id_transaction_en_ligne : BIGINT <<FK>>
+  reference_fournisseur : VARCHAR(100)
+  * contenu_brut : TEXT
+  * signature_valide : BOOLEAN
+  adresse_ip : VARCHAR(45)
+  * statut_traitement : VARCHAR(20) IN (RECUE,TRAITEE,DOUBLON,REJETEE) DEFAULT 'RECUE'
+  * date_reception : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_traitement : TIMESTAMP
+  ..
+  NB : contenu_brut jamais modifie ; seuls statut_traitement et date_traitement evoluent
+  NB : DOUBLON = notification deja traitee (un paiement n'est jamais credite deux fois)
+  NB : table technique lisible par l'admin systeme seulement (RLS)
+}
+entity "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  * id_contrat_plateforme : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  reference_contrat : VARCHAR(50)
+  * taux_commission : DECIMAL(5,2) DEFAULT 1.00
+  * commission_a_charge : VARCHAR(15) IN (ETABLISSEMENT,PARENT) DEFAULT 'ETABLISSEMENT'
+  * date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(10) IN (ACTIF,SUSPENDU,RESILIE) DEFAULT 'ACTIF'
+  ..
+  CHECK (taux_commission >= 0 AND taux_commission <= 100)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  EXCLUDE USING gist (id_etablissement WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  NB : commission sur les paiements EN_LIGNE uniquement ; a la charge de l'etablissement par defaut
+  NB : lisible par le DIRECTEUR, modifiable par l'admin systeme seulement (RLS)
+}
+entity "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  * id_facture_commission : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * numero : VARCHAR(40) UNIQUE
+  * mois : DATE
+  * montant_total : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * statut : VARCHAR(10) IN (BROUILLON,EMISE,PAYEE,ANNULEE) DEFAULT 'BROUILLON'
+  date_emission : TIMESTAMP
+  date_echeance : DATE
+  date_paiement : TIMESTAMP
+  fichier : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, mois) WHERE statut <> 'ANNULEE'
+  CHECK (EXTRACT(DAY FROM mois) = 1)
+  CHECK (montant_total = somme des commissions FACTURATION du mois (trigger))
+  NB : facture de la plateforme a l'etablissement (commissions non percues par partage)
+  NB : lisible par le DIRECTEUR et l'admin systeme (RLS)
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "CREANCE" as CREANCE <<externe>> {
+  * id_creance : BIGINT <<PK>>
+}
+ETABLISSEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_etablissement"
+FOURNISSEUR_PAIEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_fournisseur_paiement"
+FOURNISSEUR_PAIEMENT ||--o{ FOURNISSEUR_PAYS : "id_fournisseur_paiement"
+PAYS ||--o{ FOURNISSEUR_PAYS : "id_pays"
+CONFIG_PAIEMENT_ETABLISSEMENT ||--o{ TRANSACTION_EN_LIGNE : "id_config_paiement_etablissement"
+UTILISATEUR ||--o{ TRANSACTION_EN_LIGNE : "id_utilisateur_initiateur"
+PAYS ||--o{ TRANSACTION_EN_LIGNE : "id_pays"
+TRANSACTION_EN_LIGNE ||--o{ TRANSACTION_CREANCE : "id_transaction_en_ligne"
+CREANCE ||--o{ TRANSACTION_CREANCE : "id_creance"
+FOURNISSEUR_PAIEMENT ||--o{ NOTIFICATION_FOURNISSEUR : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o{ NOTIFICATION_FOURNISSEUR : "id_transaction_en_ligne"
+ETABLISSEMENT ||--o{ CONTRAT_PLATEFORME : "id_etablissement"
+ETABLISSEMENT ||--o{ FACTURE_COMMISSION : "id_etablissement"
+CONTRAT_PLATEFORME ||--o{ TRANSACTION_EN_LIGNE : "id_contrat_plateforme"
+FACTURE_COMMISSION |o--o{ TRANSACTION_EN_LIGNE : "id_facture_commission"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml
+@startuml MLD_10_authentification
+title MLD - 10 - Authentification, sessions et carte eleve
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  * id_appareil_confiance : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * empreinte_appareil : VARCHAR(128)
+  nom_appareil : VARCHAR(100)
+  * date_ajout : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  derniere_utilisation : TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_revocation : TIMESTAMP
+  ..
+  UNIQUE (id_utilisateur, empreinte_appareil)
+  CHECK (date_expiration > date_ajout)
+  NB : appareil verifie une fois par code ; evite un code a chaque connexion ; revocable a distance
+  NB : visible par son utilisateur et l'admin systeme seulement (RLS)
+}
+entity "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  * id_session_utilisateur : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  id_appareil_confiance : BIGINT <<FK>>
+  id_etablissement_actif : BIGINT <<FK>>
+  * role_actif : VARCHAR(10) IN (STAFF,PARENT,ELEVE,ADMIN)
+  * empreinte_jeton : VARCHAR(128) UNIQUE
+  adresse_ip : VARCHAR(45)
+  agent_utilisateur : VARCHAR(255)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  derniere_activite : TIMESTAMP
+  date_revocation : TIMESTAMP
+  ..
+  CHECK (date_expiration > date_creation)
+  CHECK (role_actif = 'ADMIN' OR id_etablissement_actif IS NOT NULL)
+  CHECK (role actif reellement detenu dans l'etablissement actif (trigger))
+  NB : apres connexion, choix du contexte (etablissement + role) => active la RLS de la session
+  NB : jeton jamais stocke (empreinte seule) ; changement de mot de passe => toutes les sessions revoquees
+  NB : durees (PARAMETRE_SYSTEME) : staff 8 h (30 j sur appareil de confiance), parent 90 j, eleve 30 j
+}
+entity "CODE_VERIFICATION" as CODE_VERIFICATION {
+  * id_code_verification : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * canal : VARCHAR(10) IN (WHATSAPP,SMS,EMAIL)
+  * objet : VARCHAR(25) IN (ACTIVATION,MOT_DE_PASSE_OUBLIE,NOUVEL_APPAREIL,CHANGEMENT_NUMERO,DOUBLE_AUTH)
+  * destination : VARCHAR(254)
+  * empreinte_code : VARCHAR(128)
+  * tentatives : SMALLINT DEFAULT 0
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_utilisation : TIMESTAMP
+  ..
+  CHECK (tentatives BETWEEN 0 AND 5)
+  CHECK (date_expiration > date_creation)
+  NB : code a 6 chiffres, valable 5 minutes, 5 essais, usage unique ; seule son empreinte est stockee
+  NB : WhatsApp en premier, SMS en secours, e-mail seulement s'il est verifie
+  NB : nombre d'envois limite par numero et par heure (anti-abus, applicatif)
+}
+entity "CARTE_ELEVE" as CARTE_ELEVE {
+  * id_carte_eleve : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  id_document : BIGINT <<FK>> UNIQUE
+  * numero_carte : VARCHAR(40)
+  * empreinte_jeton_qr : VARCHAR(128) UNIQUE
+  * date_emission : DATE DEFAULT CURRENT_DATE
+  * date_expiration : DATE
+  * statut : VARCHAR(10) IN (ACTIVE,PERDUE,REVOQUEE,EXPIREE) DEFAULT 'ACTIVE'
+  fichier : VARCHAR(255)
+  motif_revocation : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, numero_carte)
+  UNIQUE (id_eleve) WHERE statut = 'ACTIVE'
+  CHECK (date_expiration > date_emission)
+  CHECK (statut <> 'REVOQUEE' OR motif_revocation IS NOT NULL)
+  CHECK (date_expiration = fin de l'annee scolaire de l'inscription (trigger))
+  NB : creee automatiquement quand l'INSCRIPTION passe a VALIDEE (+ compte eleve si absent)
+  NB : identifiant de connexion de l'eleve = code etablissement + matricule (unique)
+  NB : contenu : logo et nom de l'etablissement, photo, nom, prenom, matricule, classe, annee, n de carte, identifiant
+  NB : QR code = jeton aleatoire (empreinte seule en base) ; connexion = QR code + PIN de l'eleve
+  NB : carte perdue => REVOQUEE + nouvelle carte (nouveau jeton) ; mot de passe provisoire jamais imprime
+  NB : copie PDF imprimable dans DOCUMENT (type CARTE_ELEVE), visible parent et eleve
+  FK composites (+ id_etablissement) : id_eleve, id_inscription, id_document
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE <<externe>> {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "DOCUMENT" as DOCUMENT <<externe>> {
+  * id_document : BIGINT <<PK>>
+}
+UTILISATEUR ||--o{ APPAREIL_CONFIANCE : "id_utilisateur"
+UTILISATEUR ||--o{ SESSION_UTILISATEUR : "id_utilisateur"
+APPAREIL_CONFIANCE |o--o{ SESSION_UTILISATEUR : "id_appareil_confiance"
+ETABLISSEMENT |o--o{ SESSION_UTILISATEUR : "id_etablissement_actif"
+UTILISATEUR ||--o{ CODE_VERIFICATION : "id_utilisateur"
+ELEVE ||--o{ CARTE_ELEVE : "id_eleve"
+INSCRIPTION ||--o{ CARTE_ELEVE : "id_inscription"
+DOCUMENT |o--o| CARTE_ELEVE : "id_document"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

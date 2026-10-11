@@ -1,0 +1,62 @@
+@startuml MRD_02_academique
+title MRD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>ANNEE_SCOLAIRE</b> ( <u>id_annee_scolaire</u>, libelle, date_debut, date_fin, statut,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, libelle) ; (id_etablissement) WHERE statut = 'EN_COURS'</color>
+
+<b>PERIODE</b> ( <u>id_periode</u>, libelle, numero, date_debut, date_fin,
+        statut, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, numero) ; (id_annee_scolaire) WHERE statut = 'EN_COURS'</color>
+
+<b>NIVEAU</b> ( <u>id_niveau</u>, code, libelle, cycle, ordre,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+
+<b>CLASSE</b> ( <u>id_classe</u>, nom, effectif_max, statut, <b>#id_etablissement</b>,
+        <b>#id_annee_scolaire</b>, <b>#id_niveau</b>, <b><i>#id_staff_titulaire</i></b>, <b><i>#id_salle</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_niveau -> NIVEAU ; id_staff_titulaire -> STAFF ; id_salle -> SALLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau, id_staff_titulaire, id_salle</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, nom) ; (id_classe, id_annee_scolaire) (cible de la FK composite d'INSCRIPTION)</color>
+
+<b>MATIERE</b> ( <u>id_matiere</u>, code, libelle, description, est_active,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+
+<b>ENSEIGNEMENT</b> ( <u>id_enseignement</u>, coefficient, volume_horaire_hebdo, date_debut, date_fin,
+        statut, <b>#id_etablissement</b>, <b>#id_classe</b>, <b>#id_matiere</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_classe -> CLASSE ; id_matiere -> MATIERE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_classe, id_matiere</color>
+<color:#555555>   UNIQUE : (id_classe, id_matiere)</color>
+
+<b>CRENEAU</b> ( <u>id_creneau</u>, jour_semaine, heure_debut, heure_fin, date_debut,
+        date_fin, <b>#id_etablissement</b>, <b>#id_enseignement</b>, <b><i>#id_salle</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_salle -> SALLE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_salle</color>
+<color:#555555>   UNIQUE : (id_enseignement, jour_semaine, heure_debut, date_debut)</color>
+
+<b>AFFECTATION_ENSEIGNANT</b> ( <u>id_affectation_enseignant</u>, type_affectation, date_debut, date_fin, motif,
+        <b>#id_etablissement</b>, <b>#id_enseignement</b>, <b>#id_staff_enseignant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_staff_enseignant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_staff_enseignant</color>
+
+<b>SALLE</b> ( <u>id_salle</u>, code, libelle, capacite, est_active,
+        <b>#id_etablissement</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code)</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

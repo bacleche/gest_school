@@ -1,0 +1,271 @@
+@startuml MLD_06_finance
+title MLD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  * id_frais_scolaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  id_niveau : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(150)
+  * montant : DECIMAL(12,2)
+  * obligatoire : BOOLEAN DEFAULT TRUE
+  * periodicite : VARCHAR(20) IN (PONCTUEL,MENSUEL,TRIMESTRIEL,ANNUEL) DEFAULT 'ANNUEL'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_annee_scolaire, id_niveau, code) WHERE id_niveau IS NOT NULL
+  UNIQUE (id_annee_scolaire, code) WHERE id_niveau IS NULL
+  CHECK (montant >= 0)
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau
+}
+entity "ECHEANCE" as ECHEANCE {
+  * id_echeance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_frais_scolaire : BIGINT <<FK>>
+  id_periode : BIGINT <<FK>>
+  * libelle : VARCHAR(100)
+  * date_limite : DATE
+  * montant : DECIMAL(12,2)
+  mois_concerne : DATE
+  ..
+  CHECK (montant >= 0)
+  CHECK (somme des echeances = frais_scolaire.montant (trigger))
+  CHECK (mois_concerne IS NULL OR EXTRACT(DAY FROM mois_concerne) = 1)
+  NB : mois_concerne = mois couvert (frais MENSUEL) pour afficher les mois payes / impayes
+  FK composites (+ id_etablissement) : id_frais_scolaire, id_periode
+}
+entity "CREANCE" as CREANCE {
+  * id_creance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_echeance : BIGINT <<FK>>
+  id_staff_remise : BIGINT <<FK>>
+  id_regle_reduction : BIGINT <<FK>>
+  * montant_du : DECIMAL(12,2)
+  * remise : DECIMAL(12,2) DEFAULT 0
+  * remise_reduction : DECIMAL(12,2) DEFAULT 0
+  motif_remise : VARCHAR(255)
+  * statut : VARCHAR(20) IN (DUE,PARTIELLE,SOLDEE,ANNULEE) DEFAULT 'DUE'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_echeance)
+  CHECK (remise >= 0 AND remise_reduction >= 0 AND remise + remise_reduction <= montant_du)
+  CHECK ((remise_reduction = 0) = (id_regle_reduction IS NULL))
+  CHECK (remise = 0 OR (motif_remise IS NOT NULL AND id_staff_remise IS NOT NULL))
+  CHECK (echeance de l'annee de l'inscription, frais du niveau de la classe ou commun (trigger))
+  CHECK (reduction : regle de l'annee et rang de l'eleve dans sa famille >= rang_enfant_min (trigger))
+  NB : reste du = montant_du - remise - remise_reduction - allocations (vue SITUATION_FINANCIERE_ELEVE)
+  NB : visible (RLS) par les parents/tuteurs actifs et l'eleve concerne : mois payes, partiels, impayes
+  FK composites (+ id_etablissement) : id_inscription, id_echeance, id_staff_remise, id_regle_reduction
+}
+entity "MODE_PAIEMENT" as MODE_PAIEMENT {
+  * id_mode_paiement : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  id_fournisseur_paiement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "PAIEMENT" as PAIEMENT {
+  * id_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_mode_paiement : BIGINT <<FK>>
+  id_parent_payeur : BIGINT <<FK>>
+  id_staff_enregistreur : BIGINT <<FK>>
+  id_transaction_en_ligne : BIGINT <<FK>> UNIQUE
+  id_staff_validateur : BIGINT <<FK>>
+  * numero : VARCHAR(40)
+  * montant : DECIMAL(12,2)
+  * date_paiement : TIMESTAMP
+  * canal : VARCHAR(10) IN (GUICHET,EN_LIGNE) DEFAULT 'GUICHET'
+  reference_externe : VARCHAR(100)
+  nom_payeur : VARCHAR(150)
+  telephone_payeur : VARCHAR(30)
+  * statut : VARCHAR(20) IN (EN_ATTENTE,VALIDE,ANNULE) DEFAULT 'EN_ATTENTE'
+  date_validation : TIMESTAMP
+  observation : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, numero)
+  CHECK (montant > 0)
+  CHECK (canal = 'EN_LIGNE' OR id_staff_enregistreur IS NOT NULL)
+  CHECK (id_parent_payeur IS NOT NULL OR nom_payeur IS NOT NULL)
+  NB : un paiement peut regler les creances de plusieurs enfants (paiement famille)
+  CHECK ((canal = 'EN_LIGNE') = (id_transaction_en_ligne IS NOT NULL))
+  NB : paiement EN_LIGNE cree automatiquement (VALIDE) a partir d'une TRANSACTION_EN_LIGNE REUSSIE
+  FK composites (+ id_etablissement) : id_staff_enregistreur, id_staff_validateur, id_transaction_en_ligne
+}
+entity "ALLOCATION_PAIEMENT" as ALLOCATION_PAIEMENT {
+  * id_allocation_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_paiement : BIGINT <<FK>>
+  * id_creance : BIGINT <<FK>>
+  * montant_alloue : DECIMAL(12,2)
+  * date_allocation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_paiement, id_creance)
+  CHECK (montant_alloue > 0)
+  CHECK (somme allouee <= paiement.montant et <= montant_du - remise - remise_reduction (trigger))
+  CHECK (parent payeur renseigne => responsable financier de l'eleve de la creance (trigger))
+  FK composites (+ id_etablissement) : id_paiement, id_creance
+}
+entity "RECU" as RECU {
+  * id_recu : BIGINT <<PK>>
+  --
+  * id_paiement : BIGINT <<FK>>
+  * id_etablissement : BIGINT <<FK>>
+  id_staff_emetteur : BIGINT <<FK>>
+  * numero : VARCHAR(40)
+  * nom_payeur : VARCHAR(150)
+  * montant : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * detail : JSONB
+  * code_verification : VARCHAR(32) UNIQUE
+  * date_emission : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  fichier : VARCHAR(255)
+  * statut : VARCHAR(20) IN (VALIDE,ANNULE) DEFAULT 'VALIDE'
+  ..
+  UNIQUE (id_paiement) WHERE statut = 'VALIDE'
+  CHECK (id_staff_emetteur renseigne sauf recu automatique d'un paiement EN_LIGNE (trigger))
+  CHECK (montant = paiement.montant (trigger))
+  NB : meme recu pour GUICHET et EN_LIGNE : electronique (PDF) et imprimable
+  NB : contenu fige a l'emission (detail : eleves, mois/echeances payes, montants, reste du, mode, canal)
+  NB : code_verification (QR code) pour verifier l'authenticite d'un recu imprime
+  NB : visible (RLS) par les parents/tuteurs actifs et les eleves concernes par les creances payees
+  UNIQUE (id_etablissement, numero)
+  FK composites (+ id_etablissement) : id_paiement, id_staff_emetteur
+}
+entity "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  * id_annulation_paiement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_paiement : BIGINT <<FK>>
+  * id_staff_demandeur : BIGINT <<FK>>
+  id_staff_approbateur : BIGINT <<FK>>
+  * motif : TEXT
+  * statut : VARCHAR(20) IN (DEMANDEE,APPROUVEE,REJETEE) DEFAULT 'DEMANDEE'
+  * date_demande : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_decision : TIMESTAMP
+  ..
+  UNIQUE (id_paiement) WHERE statut IN ('DEMANDEE','APPROUVEE')
+  NB : une correction = annulation approuvee + nouveau paiement
+  FK composites (+ id_etablissement) : id_paiement, id_staff_demandeur, id_staff_approbateur
+}
+entity "REGLE_REDUCTION" as REGLE_REDUCTION {
+  * id_regle_reduction : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  id_frais_scolaire : BIGINT <<FK>>
+  * libelle : VARCHAR(150)
+  * type_reduction : VARCHAR(20) IN (FRATRIE,AUTRE) DEFAULT 'FRATRIE'
+  * rang_enfant_min : SMALLINT DEFAULT 2
+  * mode_calcul : VARCHAR(12) IN (POURCENTAGE,MONTANT)
+  * valeur : DECIMAL(12,2)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  CHECK (valeur > 0)
+  CHECK (mode_calcul <> 'POURCENTAGE' OR valeur <= 100)
+  CHECK (rang_enfant_min >= 1)
+  NB : FRATRIE = reduction a partir du N-ieme enfant de la famille inscrit sur l'annee (du plus age au plus jeune)
+  NB : appliquee automatiquement a la creation des creances ; id_frais_scolaire vide = tous les frais
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_frais_scolaire
+}
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE <<externe>> {
+  * id_periode : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "PARENT" as PARENT <<externe>> {
+  * id_parent : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE <<externe>> {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+}
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT <<externe>> {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+}
+ANNEE_SCOLAIRE ||--o{ FRAIS_SCOLAIRE : "id_annee_scolaire"
+NIVEAU |o--o{ FRAIS_SCOLAIRE : "id_niveau"
+FRAIS_SCOLAIRE ||--o{ ECHEANCE : "id_frais_scolaire"
+PERIODE |o--o{ ECHEANCE : "id_periode"
+INSCRIPTION ||--o{ CREANCE : "id_inscription"
+ECHEANCE ||--o{ CREANCE : "id_echeance"
+ANNEE_SCOLAIRE ||--o{ REGLE_REDUCTION : "id_annee_scolaire"
+FRAIS_SCOLAIRE |o--o{ REGLE_REDUCTION : "id_frais_scolaire"
+REGLE_REDUCTION |o--o{ CREANCE : "id_regle_reduction"
+STAFF |o--o{ CREANCE : "id_staff_remise"
+ETABLISSEMENT ||--o{ PAIEMENT : "id_etablissement"
+ETABLISSEMENT |o--o{ MODE_PAIEMENT : "id_etablissement"
+MODE_PAIEMENT ||--o{ PAIEMENT : "id_mode_paiement"
+FOURNISSEUR_PAIEMENT |o--o{ MODE_PAIEMENT : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o| PAIEMENT : "id_transaction_en_ligne"
+PARENT |o--o{ PAIEMENT : "id_parent_payeur"
+STAFF |o--o{ PAIEMENT : "id_staff_enregistreur"
+STAFF |o--o{ PAIEMENT : "id_staff_validateur"
+PAIEMENT ||--o{ ALLOCATION_PAIEMENT : "id_paiement"
+CREANCE ||--o{ ALLOCATION_PAIEMENT : "id_creance"
+PAIEMENT ||--o{ RECU : "id_paiement"
+STAFF |o--o{ RECU : "id_staff_emetteur"
+ETABLISSEMENT ||--o{ RECU : "id_etablissement"
+PAIEMENT ||--o{ ANNULATION_PAIEMENT : "id_paiement"
+STAFF ||--o{ ANNULATION_PAIEMENT : "id_staff_demandeur"
+STAFF |o--o{ ANNULATION_PAIEMENT : "id_staff_approbateur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

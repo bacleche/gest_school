@@ -1,0 +1,196 @@
+@startuml MLD_02_academique
+title MLD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  * id_annee_scolaire : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * libelle : VARCHAR(20)
+  * date_debut : DATE
+  * date_fin : DATE
+  * statut : VARCHAR(20) IN (PLANIFIEE,EN_COURS,CLOTUREE) DEFAULT 'PLANIFIEE'
+  ..
+  UNIQUE (id_etablissement, libelle)
+  UNIQUE (id_etablissement) WHERE statut = 'EN_COURS'
+  CHECK (date_fin > date_debut)
+  CHECK (annee CLOTUREE => donnees de l'annee en lecture seule, sauf encaissement des creances impayees (trigger))
+}
+entity "PERIODE" as PERIODE {
+  * id_periode : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * libelle : VARCHAR(50)
+  * numero : SMALLINT
+  * date_debut : DATE
+  * date_fin : DATE
+  * statut : VARCHAR(20) IN (A_VENIR,EN_COURS,CLOTUREE) DEFAULT 'A_VENIR'
+  ..
+  UNIQUE (id_annee_scolaire, numero)
+  UNIQUE (id_annee_scolaire) WHERE statut = 'EN_COURS'
+  CHECK (date_fin > date_debut)
+  CHECK (periode incluse dans son annee scolaire (trigger))
+  EXCLUDE USING gist (id_annee_scolaire WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  CHECK (periode CLOTUREE => evaluations, notes, presences et resultats de la periode en lecture seule (trigger))
+  FK composites (+ id_etablissement) : id_annee_scolaire
+}
+entity "NIVEAU" as NIVEAU {
+  * id_niveau : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(20)
+  * libelle : VARCHAR(100)
+  cycle : VARCHAR(30)
+  * ordre : SMALLINT
+  ..
+  UNIQUE (id_etablissement, code)
+}
+entity "CLASSE" as CLASSE {
+  * id_classe : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_annee_scolaire : BIGINT <<FK>>
+  * id_niveau : BIGINT <<FK>>
+  id_staff_titulaire : BIGINT <<FK>>
+  id_salle : BIGINT <<FK>>
+  * nom : VARCHAR(50)
+  effectif_max : SMALLINT
+  * statut : VARCHAR(20) IN (ACTIVE,ARCHIVEE) DEFAULT 'ACTIVE'
+  ..
+  UNIQUE (id_annee_scolaire, nom)
+  UNIQUE (id_classe, id_annee_scolaire) (cible de la FK composite d'INSCRIPTION)
+  CHECK (effectif_max > 0)
+  CHECK (nombre d'inscriptions VALIDEE <= effectif_max (trigger))
+  CHECK (titulaire de type ENSEIGNANT (trigger))
+  FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau, id_staff_titulaire, id_salle
+}
+entity "MATIERE" as MATIERE {
+  * id_matiere : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(20)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code)
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT {
+  * id_enseignement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_classe : BIGINT <<FK>>
+  * id_matiere : BIGINT <<FK>>
+  * coefficient : DECIMAL(4,2) DEFAULT 1
+  volume_horaire_hebdo : DECIMAL(4,1)
+  date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (ACTIF,TERMINE) DEFAULT 'ACTIF'
+  ..
+  UNIQUE (id_classe, id_matiere)
+  FK composites (+ id_etablissement) : id_classe, id_matiere
+}
+entity "CRENEAU" as CRENEAU {
+  * id_creneau : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  id_salle : BIGINT <<FK>>
+  * jour_semaine : SMALLINT
+  * heure_debut : TIME
+  * heure_fin : TIME
+  * date_debut : DATE
+  date_fin : DATE
+  ..
+  UNIQUE (id_enseignement, jour_semaine, heure_debut, date_debut)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  CHECK (validite du creneau incluse dans l'annee scolaire (trigger))
+  CHECK (jour_semaine BETWEEN 1 AND 7)
+  CHECK (heure_fin > heure_debut)
+  CHECK (aucun chevauchement horaire pour une meme classe, un meme enseignant, une meme salle, sur une meme periode de validite (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_salle
+}
+entity "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  * id_affectation_enseignant : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_staff_enseignant : BIGINT <<FK>>
+  * type_affectation : VARCHAR(20) IN (TITULAIRE,REMPLACANT) DEFAULT 'TITULAIRE'
+  * date_debut : DATE
+  date_fin : DATE
+  motif : VARCHAR(255)
+  ..
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  EXCLUDE USING gist (id_enseignement WITH =, type_affectation WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  CHECK (staff de type ENSEIGNANT (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_staff_enseignant
+}
+entity "SALLE" as SALLE {
+  * id_salle : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  libelle : VARCHAR(100)
+  capacite : SMALLINT
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code)
+  CHECK (capacite IS NULL OR capacite > 0)
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+ETABLISSEMENT ||--o{ ANNEE_SCOLAIRE : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ PERIODE : "id_annee_scolaire"
+ETABLISSEMENT ||--o{ NIVEAU : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ CLASSE : "id_annee_scolaire"
+NIVEAU ||--o{ CLASSE : "id_niveau"
+STAFF |o--o{ CLASSE : "id_staff_titulaire"
+ETABLISSEMENT ||--o{ MATIERE : "id_etablissement"
+CLASSE ||--o{ ENSEIGNEMENT : "id_classe"
+MATIERE ||--o{ ENSEIGNEMENT : "id_matiere"
+ENSEIGNEMENT ||--o{ AFFECTATION_ENSEIGNANT : "id_enseignement"
+STAFF ||--o{ AFFECTATION_ENSEIGNANT : "id_staff_enseignant"
+ENSEIGNEMENT ||--o{ CRENEAU : "id_enseignement"
+ETABLISSEMENT ||--o{ SALLE : "id_etablissement"
+SALLE |o--o{ CLASSE : "id_salle"
+SALLE |o--o{ CRENEAU : "id_salle"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml MRD_07_transversal
+title MRD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>NOTIFICATION</b> ( <u>id_notification</u>, type_notification, titre, message, priorite,
+        entite_type, entite_id, est_lue, date_lecture, date_creation,
+        <b>#id_utilisateur</b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT</color>
+
+<b>DEMANDE</b> ( <u>id_demande</u>, type_demande, objet, description, statut,
+        reponse, date_demande, date_traitement, <b>#id_etablissement</b>, <b>#id_utilisateur_demandeur</b>,
+        <b><i>#id_eleve</i></b>, <b><i>#id_staff_traitant</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur_demandeur -> UTILISATEUR ; id_eleve -> ELEVE ; id_staff_traitant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_staff_traitant</color>
+
+<b>RAPPORT</b> ( <u>id_rapport</u>, titre, type_rapport, periode_debut, periode_fin,
+        parametres, format_fichier, fichier, date_generation, <b>#id_etablissement</b>,
+        <b><i>#id_domaine</i></b>, <b>#id_utilisateur_generateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_domaine -> DOMAINE ; id_utilisateur_generateur -> UTILISATEUR</color>
+
+<b>JOURNAL_AUDIT</b> ( <u>id_journal_audit</u>, type_operation, entite_type, entite_id, anciennes_valeurs,
+        nouvelles_valeurs, adresse_ip, date_action, <b><i>#id_utilisateur</i></b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT</color>
+
+<b>PARAMETRE_SYSTEME</b> ( <u>id_parametre_systeme</u>, cle, valeur, description, date_modification,
+        <b><i>#id_etablissement</i></b>, <b><i>#id_utilisateur_modificateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_utilisateur_modificateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_etablissement, cle) WHERE id_etablissement IS NOT NULL ; (cle) WHERE id_etablissement IS NULL</color>
+
+<b>ENVOI_NOTIFICATION</b> ( <u>id_envoi_notification</u>, canal, destination, fournisseur_envoi, reference_fournisseur,
+        statut, tentatives, cout, devise, code_erreur,
+        date_creation, date_envoi, date_distribution, <b>#id_notification</b>, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_notification -> NOTIFICATION ; id_etablissement -> ETABLISSEMENT</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

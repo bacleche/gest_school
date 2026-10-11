@@ -1,0 +1,204 @@
+@startuml MLD_01_noyau
+title MLD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "ETABLISSEMENT" as ETABLISSEMENT {
+  * id_etablissement : BIGINT <<PK>>
+  --
+  * code : VARCHAR(20) UNIQUE
+  * nom : VARCHAR(200)
+  type_etablissement : VARCHAR(30)
+  adresse : VARCHAR(255)
+  ville : VARCHAR(100)
+  pays : VARCHAR(100)
+  telephone : VARCHAR(30)
+  email : VARCHAR(254)
+  logo : VARCHAR(255)
+  * devise : VARCHAR(10) DEFAULT 'XAF'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+}
+entity "UTILISATEUR" as UTILISATEUR {
+  * id_utilisateur : BIGINT <<PK>>
+  --
+  email : VARCHAR(254) UNIQUE
+  mot_de_passe_hash : VARCHAR(255)
+  * nom : VARCHAR(100)
+  * prenom : VARCHAR(100)
+  telephone : VARCHAR(20) UNIQUE
+  identifiant : VARCHAR(50) UNIQUE
+  photo : VARCHAR(255)
+  * est_admin_systeme : BOOLEAN DEFAULT FALSE
+  * statut_compte : VARCHAR(25) IN (EN_ATTENTE_ACTIVATION,ACTIF,SUSPENDU,DESACTIVE) DEFAULT 'EN_ATTENTE_ACTIVATION'
+  derniere_connexion : TIMESTAMP
+  * tentatives_echec : SMALLINT DEFAULT 0
+  verrouille_jusqu_a : TIMESTAMP
+  date_changement_mdp : TIMESTAMP
+  telephone_verifie_le : TIMESTAMP
+  email_verifie_le : TIMESTAMP
+  * doit_changer_mdp : BOOLEAN DEFAULT FALSE
+  * type_secret : VARCHAR(12) IN (MOT_DE_PASSE,PIN) DEFAULT 'MOT_DE_PASSE'
+  * methode_2fa : VARCHAR(12) IN (AUCUNE,APPLICATION,SMS) DEFAULT 'AUCUNE'
+  reference_secret_2fa : VARCHAR(200)
+  * canal_notification_prefere : VARCHAR(12) IN (WHATSAPP,SMS,EMAIL,APPLICATION) DEFAULT 'WHATSAPP'
+  date_anonymisation : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (tentatives_echec >= 0)
+  CHECK (telephone IS NOT NULL OR email IS NOT NULL OR identifiant IS NOT NULL)
+  CHECK (statut_compte <> 'ACTIF' OR mot_de_passe_hash IS NOT NULL)
+  NB : compte cree par l'ecole en EN_ATTENTE_ACTIVATION ; ACTIF apres code + choix du mot de passe ou du PIN
+  CHECK (methode_2fa <> 'APPLICATION' OR reference_secret_2fa IS NOT NULL)
+  CHECK (telephone au format international E.164, ex. +2376XXXXXXXX (trigger))
+  CHECK (compte STAFF ou PARENT => telephone renseigne ; compte ELEVE => identifiant renseigne (trigger))
+  CHECK (PIN autorise seulement pour PARENT et ELEVE (trigger))
+  CHECK (double authentification obligatoire si DIRECTEUR ou droits FINANCE / VALIDATION (trigger))
+  NB : connexion staff/parent par telephone (e-mail en option) ; eleve par identifiant ou QR code de sa carte
+  NB : mot_de_passe_hash = empreinte Argon2id du mot de passe ou du PIN ; reference_secret_2fa pointe vers le coffre
+  NB : UTILISATEUR commun ; visible (RLS) seulement s'il est STAFF, PARENT ou ELEVE de l'etablissement
+}
+entity "STAFF" as STAFF {
+  * id_staff : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * id_etablissement : BIGINT <<FK>>
+  id_staff_createur : BIGINT <<FK>>
+  * type_staff : VARCHAR(20) IN (DIRECTEUR,ADMINISTRATION,ENSEIGNANT)
+  * matricule : VARCHAR(30)
+  fonction : VARCHAR(100)
+  specialite : VARCHAR(100)
+  date_embauche : DATE
+  date_fin : DATE
+  * statut : VARCHAR(20) IN (ACTIF,SUSPENDU,ARCHIVE) DEFAULT 'ACTIF'
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, matricule)
+  UNIQUE (id_utilisateur, id_etablissement)
+  FK composites (+ id_etablissement) : id_staff_createur
+}
+entity "DOMAINE" as DOMAINE {
+  * id_domaine : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+}
+entity "TYPE_ACTION" as TYPE_ACTION {
+  * id_type_action : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  * categorie : VARCHAR(20) IN (CONSULTATION,GESTION,VALIDATION,SUIVI,PRODUCTION,ADMINISTRATION,DECISION)
+}
+entity "PERMISSION" as PERMISSION {
+  * id_permission : BIGINT <<PK>>
+  --
+  * id_domaine : BIGINT <<FK>>
+  * id_type_action : BIGINT <<FK>>
+  * code : VARCHAR(80) UNIQUE
+  * libelle : VARCHAR(150)
+  ressource : VARCHAR(50)
+  description : VARCHAR(255)
+}
+entity "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  * id_attribution_permission : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_staff_beneficiaire : BIGINT <<FK>>
+  * id_permission : BIGINT <<FK>>
+  * id_staff_attribuant : BIGINT <<FK>>
+  * date_attribution : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_expiration : TIMESTAMP
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_staff_beneficiaire, id_permission) WHERE est_active = TRUE
+  CHECK (id_staff_attribuant <> id_staff_beneficiaire)
+  CHECK (l'attribuant possede cette permission ou est DIRECTEUR (trigger))
+  FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant
+}
+entity "ROLE" as ROLE {
+  * id_role : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(50)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+}
+entity "ROLE_PERMISSION" as ROLE_PERMISSION {
+  * id_role_permission : BIGINT <<PK>>
+  --
+  * id_role : BIGINT <<FK>>
+  * id_permission : BIGINT <<FK>>
+  ..
+  UNIQUE (id_role, id_permission)
+  NB : isolee via ROLE (RLS du role)
+}
+entity "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  * id_attribution_role : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_staff_beneficiaire : BIGINT <<FK>>
+  * id_role : BIGINT <<FK>>
+  * id_staff_attribuant : BIGINT <<FK>>
+  * date_attribution : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_expiration : TIMESTAMP
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_staff_beneficiaire, id_role) WHERE est_active = TRUE
+  CHECK (role global ou du meme etablissement que le staff (trigger))
+  CHECK (id_staff_attribuant <> id_staff_beneficiaire)
+  CHECK (l'attribuant possede toutes les permissions du role ou est DIRECTEUR (trigger))
+  FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant
+}
+UTILISATEUR ||--o{ STAFF : "id_utilisateur"
+ETABLISSEMENT ||--o{ STAFF : "id_etablissement"
+STAFF |o--o{ STAFF : "id_staff_createur"
+DOMAINE ||--o{ PERMISSION : "id_domaine"
+TYPE_ACTION ||--o{ PERMISSION : "id_type_action"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_beneficiaire"
+PERMISSION ||--o{ ATTRIBUTION_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_attribuant"
+ETABLISSEMENT |o--o{ ROLE : "id_etablissement"
+ROLE ||--o{ ROLE_PERMISSION : "id_role"
+PERMISSION ||--o{ ROLE_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_beneficiaire"
+ROLE ||--o{ ATTRIBUTION_ROLE : "id_role"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_attribuant"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

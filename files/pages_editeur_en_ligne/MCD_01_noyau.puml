@@ -1,0 +1,150 @@
+@startuml MCD_01_noyau
+title MCD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "ETABLISSEMENT" as ETABLISSEMENT {
+  <u>id_etablissement</u>
+  --
+  code
+  nom
+  type_etablissement
+  adresse
+  ville
+  pays
+  telephone
+  email
+  logo
+  devise
+  est_actif
+  date_creation
+}
+class "UTILISATEUR" as UTILISATEUR {
+  <u>id_utilisateur</u>
+  --
+  email
+  mot_de_passe_hash
+  nom
+  prenom
+  telephone
+  photo
+  est_admin_systeme
+  statut_compte
+  derniere_connexion
+  tentatives_echec
+  verrouille_jusqu_a
+  date_changement_mdp
+  identifiant
+  telephone_verifie_le
+  email_verifie_le
+  doit_changer_mdp
+  type_secret
+  methode_2fa
+  reference_secret_2fa
+  canal_notification_prefere
+  date_anonymisation
+  date_creation
+}
+class "STAFF" as STAFF {
+  <u>id_staff</u>
+  --
+  type_staff
+  matricule
+  fonction
+  specialite
+  date_embauche
+  date_fin
+  statut
+  date_creation
+}
+class "DOMAINE" as DOMAINE {
+  <u>id_domaine</u>
+  --
+  code
+  libelle
+  description
+}
+class "TYPE_ACTION" as TYPE_ACTION {
+  <u>id_type_action</u>
+  --
+  code
+  libelle
+  categorie
+}
+class "PERMISSION" as PERMISSION {
+  <u>id_permission</u>
+  --
+  code
+  libelle
+  ressource
+  description
+}
+class "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  <u>id_attribution_permission</u>
+  --
+  date_attribution
+  date_expiration
+  est_active
+}
+class "ROLE" as ROLE {
+  <u>id_role</u>
+  --
+  code
+  libelle
+  description
+  est_actif
+}
+class "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  <u>id_attribution_role</u>
+  --
+  date_attribution
+  date_expiration
+  est_active
+}
+STAFF "1,1" -- "0,n" UTILISATEUR : UTILISER_COMPTE
+STAFF "1,1" -- "0,n" ETABLISSEMENT : TRAVAILLER_DANS
+STAFF "0,1" -- "0,n" STAFF : ETRE_CREE_PAR
+PERMISSION "1,1" -- "0,n" DOMAINE : CONCERNER_DOMAINE
+PERMISSION "1,1" -- "0,n" TYPE_ACTION : AUTORISER_ACTION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF : RECEVOIR_PERMISSION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" PERMISSION : PORTER_SUR_PERMISSION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF : ETRE_ACCORDEE_PAR
+ROLE "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+ROLE "0,n" -- "0,n" PERMISSION : COMPOSER
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF : RECEVOIR_ROLE
+ATTRIBUTION_ROLE "1,1" -- "0,n" ROLE : PORTER_SUR_ROLE
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF : ETRE_ATTRIBUE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

@@ -1,0 +1,146 @@
+@startuml MLD_10_authentification
+title MLD - 10 - Authentification, sessions et carte eleve
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  * id_appareil_confiance : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * empreinte_appareil : VARCHAR(128)
+  nom_appareil : VARCHAR(100)
+  * date_ajout : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  derniere_utilisation : TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_revocation : TIMESTAMP
+  ..
+  UNIQUE (id_utilisateur, empreinte_appareil)
+  CHECK (date_expiration > date_ajout)
+  NB : appareil verifie une fois par code ; evite un code a chaque connexion ; revocable a distance
+  NB : visible par son utilisateur et l'admin systeme seulement (RLS)
+}
+entity "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  * id_session_utilisateur : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  id_appareil_confiance : BIGINT <<FK>>
+  id_etablissement_actif : BIGINT <<FK>>
+  * role_actif : VARCHAR(10) IN (STAFF,PARENT,ELEVE,ADMIN)
+  * empreinte_jeton : VARCHAR(128) UNIQUE
+  adresse_ip : VARCHAR(45)
+  agent_utilisateur : VARCHAR(255)
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  derniere_activite : TIMESTAMP
+  date_revocation : TIMESTAMP
+  ..
+  CHECK (date_expiration > date_creation)
+  CHECK (role_actif = 'ADMIN' OR id_etablissement_actif IS NOT NULL)
+  CHECK (role actif reellement detenu dans l'etablissement actif (trigger))
+  NB : apres connexion, choix du contexte (etablissement + role) => active la RLS de la session
+  NB : jeton jamais stocke (empreinte seule) ; changement de mot de passe => toutes les sessions revoquees
+  NB : durees (PARAMETRE_SYSTEME) : staff 8 h (30 j sur appareil de confiance), parent 90 j, eleve 30 j
+}
+entity "CODE_VERIFICATION" as CODE_VERIFICATION {
+  * id_code_verification : BIGINT <<PK>>
+  --
+  * id_utilisateur : BIGINT <<FK>>
+  * canal : VARCHAR(10) IN (WHATSAPP,SMS,EMAIL)
+  * objet : VARCHAR(25) IN (ACTIVATION,MOT_DE_PASSE_OUBLIE,NOUVEL_APPAREIL,CHANGEMENT_NUMERO,DOUBLE_AUTH)
+  * destination : VARCHAR(254)
+  * empreinte_code : VARCHAR(128)
+  * tentatives : SMALLINT DEFAULT 0
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_utilisation : TIMESTAMP
+  ..
+  CHECK (tentatives BETWEEN 0 AND 5)
+  CHECK (date_expiration > date_creation)
+  NB : code a 6 chiffres, valable 5 minutes, 5 essais, usage unique ; seule son empreinte est stockee
+  NB : WhatsApp en premier, SMS en secours, e-mail seulement s'il est verifie
+  NB : nombre d'envois limite par numero et par heure (anti-abus, applicatif)
+}
+entity "CARTE_ELEVE" as CARTE_ELEVE {
+  * id_carte_eleve : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_eleve : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  id_document : BIGINT <<FK>> UNIQUE
+  * numero_carte : VARCHAR(40)
+  * empreinte_jeton_qr : VARCHAR(128) UNIQUE
+  * date_emission : DATE DEFAULT CURRENT_DATE
+  * date_expiration : DATE
+  * statut : VARCHAR(10) IN (ACTIVE,PERDUE,REVOQUEE,EXPIREE) DEFAULT 'ACTIVE'
+  fichier : VARCHAR(255)
+  motif_revocation : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, numero_carte)
+  UNIQUE (id_eleve) WHERE statut = 'ACTIVE'
+  CHECK (date_expiration > date_emission)
+  CHECK (statut <> 'REVOQUEE' OR motif_revocation IS NOT NULL)
+  CHECK (date_expiration = fin de l'annee scolaire de l'inscription (trigger))
+  NB : creee automatiquement quand l'INSCRIPTION passe a VALIDEE (+ compte eleve si absent)
+  NB : identifiant de connexion de l'eleve = code etablissement + matricule (unique)
+  NB : contenu : logo et nom de l'etablissement, photo, nom, prenom, matricule, classe, annee, n de carte, identifiant
+  NB : QR code = jeton aleatoire (empreinte seule en base) ; connexion = QR code + PIN de l'eleve
+  NB : carte perdue => REVOQUEE + nouvelle carte (nouveau jeton) ; mot de passe provisoire jamais imprime
+  NB : copie PDF imprimable dans DOCUMENT (type CARTE_ELEVE), visible parent et eleve
+  FK composites (+ id_etablissement) : id_eleve, id_inscription, id_document
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE <<externe>> {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "DOCUMENT" as DOCUMENT <<externe>> {
+  * id_document : BIGINT <<PK>>
+}
+UTILISATEUR ||--o{ APPAREIL_CONFIANCE : "id_utilisateur"
+UTILISATEUR ||--o{ SESSION_UTILISATEUR : "id_utilisateur"
+APPAREIL_CONFIANCE |o--o{ SESSION_UTILISATEUR : "id_appareil_confiance"
+ETABLISSEMENT |o--o{ SESSION_UTILISATEUR : "id_etablissement_actif"
+UTILISATEUR ||--o{ CODE_VERIFICATION : "id_utilisateur"
+ELEVE ||--o{ CARTE_ELEVE : "id_eleve"
+INSCRIPTION ||--o{ CARTE_ELEVE : "id_inscription"
+DOCUMENT |o--o| CARTE_ELEVE : "id_document"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

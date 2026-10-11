@@ -1,0 +1,131 @@
+@startuml MCD_08_bibliotheque
+title MCD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  <u>id_categorie_ressource</u>
+  --
+  code
+  libelle
+  description
+  est_active
+}
+class "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  <u>id_ressource_numerique</u>
+  --
+  titre
+  auteur
+  editeur
+  annee_publication
+  isbn
+  description
+  type_ressource
+  fichier
+  url
+  format
+  langue
+  licence
+  statut
+  date_ajout
+  date_publication
+}
+class "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  <u>id_ressource_diffusion</u>
+  --
+  date_debut
+  date_fin
+  rendu_attendu
+  date_limite_rendu
+  date_creation
+}
+class "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  <u>id_consultation_ressource</u>
+  --
+  type_consultation
+  date_consultation
+}
+class "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  <u>id_rendu_travail</u>
+  --
+  fichier
+  commentaire_eleve
+  date_rendu
+  statut
+  commentaire_correction
+  date_correction
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "MATIERE" as MATIERE <<externe>> {
+  <u>id_matiere</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "CLASSE" as CLASSE <<externe>> {
+  <u>id_classe</u>
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "EVALUATION" as EVALUATION <<externe>> {
+  <u>id_evaluation</u>
+}
+CATEGORIE_RESSOURCE "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" ETABLISSEMENT : APPARTENIR_A
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" CATEGORIE_RESSOURCE : ETRE_CLASSEE_DANS
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" MATIERE : CONCERNER_MATIERE
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" STAFF : ETRE_AJOUTEE_PAR
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+RESSOURCE_DIFFUSION "1,1" -- "0,n" RESSOURCE_NUMERIQUE : DIFFUSER
+RESSOURCE_DIFFUSION "0,1" -- "0,n" NIVEAU : VISER_NIVEAU
+RESSOURCE_DIFFUSION "0,1" -- "0,n" CLASSE : VISER_CLASSE
+RESSOURCE_DIFFUSION "1,1" -- "0,n" STAFF : ETRE_DIFFUSEE_PAR
+RESSOURCE_DIFFUSION "0,1" -- "0,n" EVALUATION : COMPTER_POUR
+CONSULTATION_RESSOURCE "1,1" -- "0,n" RESSOURCE_NUMERIQUE : PORTER_SUR
+CONSULTATION_RESSOURCE "1,1" -- "0,n" UTILISATEUR : ETRE_CONSULTEE_PAR
+RENDU_TRAVAIL "1,1" -- "0,n" RESSOURCE_DIFFUSION : REPONDRE_A
+RENDU_TRAVAIL "1,1" -- "0,n" INSCRIPTION : ETRE_RENDU_PAR
+RENDU_TRAVAIL "0,1" -- "0,n" STAFF : ETRE_CORRIGE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

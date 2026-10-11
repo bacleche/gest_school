@@ -1,0 +1,44 @@
+@startuml MRD_08_bibliotheque
+title MRD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>CATEGORIE_RESSOURCE</b> ( <u>id_categorie_ressource</u>, code, libelle, description, est_active,
+        <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>RESSOURCE_NUMERIQUE</b> ( <u>id_ressource_numerique</u>, titre, auteur, editeur, annee_publication,
+        isbn, description, type_ressource, fichier, url,
+        format, langue, licence, statut, date_ajout,
+        date_publication, <b>#id_etablissement</b>, <b><i>#id_categorie_ressource</i></b>, <b><i>#id_matiere</i></b>, <b>#id_staff_auteur</b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_categorie_ressource -> CATEGORIE_RESSOURCE ; id_matiere -> MATIERE ; id_staff_auteur -> STAFF ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_matiere, id_staff_auteur, id_staff_validateur</color>
+
+<b>RESSOURCE_DIFFUSION</b> ( <u>id_ressource_diffusion</u>, date_debut, date_fin, rendu_attendu, date_limite_rendu,
+        date_creation, <b>#id_etablissement</b>, <b>#id_ressource_numerique</b>, <b><i>#id_niveau</i></b>, <b><i>#id_classe</i></b>,
+        <b>#id_staff_diffuseur</b>, <b><i>#id_evaluation</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_numerique -> RESSOURCE_NUMERIQUE ; id_niveau -> NIVEAU ; id_classe -> CLASSE ; id_staff_diffuseur -> STAFF ; id_evaluation -> EVALUATION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_numerique, id_niveau, id_classe, id_staff_diffuseur, id_evaluation</color>
+
+<b>CONSULTATION_RESSOURCE</b> ( <u>id_consultation_ressource</u>, type_consultation, date_consultation, <b>#id_etablissement</b>, <b>#id_ressource_numerique</b>,
+        <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_numerique -> RESSOURCE_NUMERIQUE ; id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_numerique</color>
+
+<b>RENDU_TRAVAIL</b> ( <u>id_rendu_travail</u>, fichier, commentaire_eleve, date_rendu, statut,
+        commentaire_correction, date_correction, <b>#id_etablissement</b>, <b>#id_ressource_diffusion</b>, <b>#id_inscription</b>,
+        <b><i>#id_staff_correcteur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_ressource_diffusion -> RESSOURCE_DIFFUSION ; id_inscription -> INSCRIPTION ; id_staff_correcteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_ressource_diffusion, id_inscription, id_staff_correcteur</color>
+<color:#555555>   UNIQUE : (id_ressource_diffusion, id_inscription)</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

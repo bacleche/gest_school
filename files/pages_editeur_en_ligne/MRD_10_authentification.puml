@@ -1,0 +1,35 @@
+@startuml MRD_10_authentification
+title MRD - 10 - Authentification, sessions et carte eleve
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>APPAREIL_CONFIANCE</b> ( <u>id_appareil_confiance</u>, empreinte_appareil, nom_appareil, date_ajout, derniere_utilisation,
+        date_expiration, date_revocation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+<color:#555555>   UNIQUE : (id_utilisateur, empreinte_appareil)</color>
+
+<b>SESSION_UTILISATEUR</b> ( <u>id_session_utilisateur</u>, role_actif, empreinte_jeton, adresse_ip, agent_utilisateur,
+        date_creation, date_expiration, derniere_activite, date_revocation, <b>#id_utilisateur</b>,
+        <b><i>#id_appareil_confiance</i></b>, <b><i>#id_etablissement_actif</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_appareil_confiance -> APPAREIL_CONFIANCE ; id_etablissement_actif -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (empreinte_jeton)</color>
+
+<b>CODE_VERIFICATION</b> ( <u>id_code_verification</u>, canal, objet, destination, empreinte_code,
+        tentatives, date_creation, date_expiration, date_utilisation, <b>#id_utilisateur</b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR</color>
+
+<b>CARTE_ELEVE</b> ( <u>id_carte_eleve</u>, numero_carte, empreinte_jeton_qr, date_emission, date_expiration,
+        statut, fichier, motif_revocation, <b>#id_etablissement</b>, <b>#id_eleve</b>,
+        <b>#id_inscription</b>, <b><i>#id_document</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_eleve -> ELEVE ; id_inscription -> INSCRIPTION ; id_document -> DOCUMENT</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_eleve, id_inscription, id_document</color>
+<color:#555555>   UNIQUE : (empreinte_jeton_qr) ; (id_document) ; (id_etablissement, numero_carte) ; (id_eleve) WHERE statut = 'ACTIVE'</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

@@ -1,0 +1,60 @@
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+
+from .models import (
+    Attendance,
+    Classroom,
+    DueDate,
+    Enrollment,
+    Evaluation,
+    Family,
+    Fee,
+    Grade,
+    Institution,
+    InstitutionMembership,
+    Level,
+    Notification,
+    ParentProfile,
+    Payment,
+    PaymentAllocation,
+    Period,
+    Receivable,
+    Receipt,
+    SchoolYear,
+    StaffProfile,
+    Student,
+    StudentParent,
+    Subject,
+    Teaching,
+    User,
+)
+
+admin.site.register(User, UserAdmin)
+admin.site.register(
+    [
+        Institution,
+        InstitutionMembership,
+        StaffProfile,
+        ParentProfile,
+        SchoolYear,
+        Period,
+        Level,
+        Classroom,
+        Subject,
+        Teaching,
+        Family,
+        Student,
+        StudentParent,
+        Enrollment,
+        Evaluation,
+        Grade,
+        Attendance,
+        Fee,
+        DueDate,
+        Receivable,
+        Payment,
+        PaymentAllocation,
+        Receipt,
+        Notification,
+    ]
+)

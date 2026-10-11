@@ -1,0 +1,436 @@
+@startuml MLD_00_vue_ensemble
+title MLD - Vue d'ensemble (cles uniquement)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+' Vue d'ensemble compacte : sinon l'image depasse 4096 px et l'editeur la coupe
+skinparam nodesep 25
+skinparam ranksep 50
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+package "1 - Noyau, comptes et permissions" {
+entity "ETABLISSEMENT" as ETABLISSEMENT {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF {
+  * id_staff : BIGINT <<PK>>
+}
+entity "DOMAINE" as DOMAINE {
+  * id_domaine : BIGINT <<PK>>
+}
+entity "TYPE_ACTION" as TYPE_ACTION {
+  * id_type_action : BIGINT <<PK>>
+}
+entity "ROLE" as ROLE {
+  * id_role : BIGINT <<PK>>
+}
+entity "ROLE_PERMISSION" as ROLE_PERMISSION {
+  * id_role_permission : BIGINT <<PK>>
+}
+entity "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  * id_attribution_role : BIGINT <<PK>>
+}
+entity "PERMISSION" as PERMISSION {
+  * id_permission : BIGINT <<PK>>
+}
+entity "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  * id_attribution_permission : BIGINT <<PK>>
+}
+}
+package "2 - Structure academique et emploi du temps" {
+entity "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  * id_annee_scolaire : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE {
+  * id_periode : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE {
+  * id_classe : BIGINT <<PK>>
+}
+entity "MATIERE" as MATIERE {
+  * id_matiere : BIGINT <<PK>>
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT {
+  * id_enseignement : BIGINT <<PK>>
+}
+entity "CRENEAU" as CRENEAU {
+  * id_creneau : BIGINT <<PK>>
+}
+entity "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  * id_affectation_enseignant : BIGINT <<PK>>
+}
+entity "SALLE" as SALLE {
+  * id_salle : BIGINT <<PK>>
+}
+}
+package "3 - Secretariat : eleves, parents, inscriptions, documents" {
+entity "PARENT" as PARENT {
+  * id_parent : BIGINT <<PK>>
+}
+entity "ELEVE" as ELEVE {
+  * id_eleve : BIGINT <<PK>>
+}
+entity "ELEVE_PARENT" as ELEVE_PARENT {
+  * id_eleve_parent : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  * id_type_document : BIGINT <<PK>>
+}
+entity "DOCUMENT" as DOCUMENT {
+  * id_document : BIGINT <<PK>>
+}
+entity "FAMILLE" as FAMILLE {
+  * id_famille : BIGINT <<PK>>
+}
+}
+package "4 - Responsabilite pedagogique : evaluations et resultats" {
+entity "TYPE_EVALUATION" as TYPE_EVALUATION {
+  * id_type_evaluation : BIGINT <<PK>>
+}
+entity "EVALUATION" as EVALUATION {
+  * id_evaluation : BIGINT <<PK>>
+}
+entity "NOTE" as NOTE {
+  * id_note : BIGINT <<PK>>
+}
+entity "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  * id_historique_note : BIGINT <<PK>>
+}
+entity "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  * id_resultat_matiere : BIGINT <<PK>>
+}
+entity "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  * id_resultat_periode : BIGINT <<PK>>
+}
+entity "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  * id_resultat_annuel : BIGINT <<PK>>
+}
+entity "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  * id_derogation_acces_resultat : BIGINT <<PK>>
+}
+}
+package "5 - Surveillance : presences, incidents, discipline" {
+entity "PRESENCE" as PRESENCE {
+  * id_presence : BIGINT <<PK>>
+}
+entity "TYPE_INCIDENT" as TYPE_INCIDENT {
+  * id_type_incident : BIGINT <<PK>>
+}
+entity "INCIDENT" as INCIDENT {
+  * id_incident : BIGINT <<PK>>
+}
+entity "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  * id_observation_incident : BIGINT <<PK>>
+}
+entity "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  * id_decision_disciplinaire : BIGINT <<PK>>
+}
+}
+package "6 - Finance : frais, paiements, recus" {
+entity "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  * id_frais_scolaire : BIGINT <<PK>>
+}
+entity "ECHEANCE" as ECHEANCE {
+  * id_echeance : BIGINT <<PK>>
+}
+entity "CREANCE" as CREANCE {
+  * id_creance : BIGINT <<PK>>
+}
+entity "MODE_PAIEMENT" as MODE_PAIEMENT {
+  * id_mode_paiement : BIGINT <<PK>>
+}
+entity "PAIEMENT" as PAIEMENT {
+  * id_paiement : BIGINT <<PK>>
+}
+entity "ALLOCATION_PAIEMENT" as ALLOCATION_PAIEMENT {
+  * id_allocation_paiement : BIGINT <<PK>>
+}
+entity "RECU" as RECU {
+  * id_recu : BIGINT <<PK>>
+}
+entity "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  * id_annulation_paiement : BIGINT <<PK>>
+}
+entity "REGLE_REDUCTION" as REGLE_REDUCTION {
+  * id_regle_reduction : BIGINT <<PK>>
+}
+}
+package "7 - Transversal : notifications, demandes, rapports, audit" {
+entity "NOTIFICATION" as NOTIFICATION {
+  * id_notification : BIGINT <<PK>>
+}
+entity "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  * id_envoi_notification : BIGINT <<PK>>
+}
+entity "DEMANDE" as DEMANDE {
+  * id_demande : BIGINT <<PK>>
+}
+entity "RAPPORT" as RAPPORT {
+  * id_rapport : BIGINT <<PK>>
+}
+entity "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  * id_journal_audit : BIGINT <<PK>>
+}
+entity "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  * id_parametre_systeme : BIGINT <<PK>>
+}
+}
+package "8 - Bibliotheque numerique : ressources, diffusions, rendus" {
+entity "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  * id_categorie_ressource : BIGINT <<PK>>
+}
+entity "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  * id_ressource_numerique : BIGINT <<PK>>
+}
+entity "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  * id_ressource_diffusion : BIGINT <<PK>>
+}
+entity "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  * id_consultation_ressource : BIGINT <<PK>>
+}
+entity "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  * id_rendu_travail : BIGINT <<PK>>
+}
+}
+package "9 - Finance : paiement en ligne (Mobile Money, agregateurs)" {
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+}
+entity "PAYS" as PAYS {
+  * id_pays : BIGINT <<PK>>
+}
+entity "FOURNISSEUR_PAYS" as FOURNISSEUR_PAYS {
+  * id_fournisseur_pays : BIGINT <<PK>>
+}
+entity "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  * id_config_paiement_etablissement : BIGINT <<PK>>
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+}
+entity "TRANSACTION_CREANCE" as TRANSACTION_CREANCE {
+  * id_transaction_creance : BIGINT <<PK>>
+}
+entity "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  * id_notification_fournisseur : BIGINT <<PK>>
+}
+entity "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  * id_contrat_plateforme : BIGINT <<PK>>
+}
+entity "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  * id_facture_commission : BIGINT <<PK>>
+}
+}
+package "10 - Authentification, sessions et carte eleve" {
+entity "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  * id_appareil_confiance : BIGINT <<PK>>
+}
+entity "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  * id_session_utilisateur : BIGINT <<PK>>
+}
+entity "CODE_VERIFICATION" as CODE_VERIFICATION {
+  * id_code_verification : BIGINT <<PK>>
+}
+entity "CARTE_ELEVE" as CARTE_ELEVE {
+  * id_carte_eleve : BIGINT <<PK>>
+}
+}
+UTILISATEUR ||--o{ STAFF : "id_utilisateur"
+ETABLISSEMENT ||--o{ STAFF : "id_etablissement"
+STAFF |o--o{ STAFF : "id_staff_createur"
+DOMAINE ||--o{ PERMISSION : "id_domaine"
+TYPE_ACTION ||--o{ PERMISSION : "id_type_action"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_beneficiaire"
+PERMISSION ||--o{ ATTRIBUTION_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_PERMISSION : "id_staff_attribuant"
+ETABLISSEMENT |o--o{ ROLE : "id_etablissement"
+ROLE ||--o{ ROLE_PERMISSION : "id_role"
+PERMISSION ||--o{ ROLE_PERMISSION : "id_permission"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_beneficiaire"
+ROLE ||--o{ ATTRIBUTION_ROLE : "id_role"
+STAFF ||--o{ ATTRIBUTION_ROLE : "id_staff_attribuant"
+ETABLISSEMENT ||--o{ ANNEE_SCOLAIRE : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ PERIODE : "id_annee_scolaire"
+ETABLISSEMENT ||--o{ NIVEAU : "id_etablissement"
+ANNEE_SCOLAIRE ||--o{ CLASSE : "id_annee_scolaire"
+NIVEAU ||--o{ CLASSE : "id_niveau"
+STAFF |o--o{ CLASSE : "id_staff_titulaire"
+ETABLISSEMENT ||--o{ MATIERE : "id_etablissement"
+CLASSE ||--o{ ENSEIGNEMENT : "id_classe"
+MATIERE ||--o{ ENSEIGNEMENT : "id_matiere"
+ENSEIGNEMENT ||--o{ AFFECTATION_ENSEIGNANT : "id_enseignement"
+STAFF ||--o{ AFFECTATION_ENSEIGNANT : "id_staff_enseignant"
+ENSEIGNEMENT ||--o{ CRENEAU : "id_enseignement"
+ETABLISSEMENT ||--o{ SALLE : "id_etablissement"
+SALLE |o--o{ CLASSE : "id_salle"
+SALLE |o--o{ CRENEAU : "id_salle"
+UTILISATEUR ||--o| PARENT : "id_utilisateur"
+ETABLISSEMENT ||--o{ ELEVE : "id_etablissement"
+ETABLISSEMENT ||--o{ FAMILLE : "id_etablissement"
+PARENT |o--o{ FAMILLE : "id_parent_referent"
+FAMILLE |o--o{ ELEVE : "id_famille"
+UTILISATEUR |o--o{ ELEVE : "id_utilisateur"
+ELEVE ||--o{ ELEVE_PARENT : "id_eleve"
+PARENT ||--o{ ELEVE_PARENT : "id_parent"
+ELEVE ||--o{ INSCRIPTION : "id_eleve"
+CLASSE ||--o{ INSCRIPTION : "id_classe"
+ANNEE_SCOLAIRE ||--o{ INSCRIPTION : "id_annee_scolaire"
+STAFF ||--o{ INSCRIPTION : "id_staff_createur"
+STAFF |o--o{ INSCRIPTION : "id_staff_validateur"
+ELEVE ||--o{ DOCUMENT : "id_eleve"
+ETABLISSEMENT |o--o{ TYPE_DOCUMENT : "id_etablissement"
+TYPE_DOCUMENT ||--o{ DOCUMENT : "id_type_document"
+STAFF |o--o{ DOCUMENT : "id_staff_auteur"
+ENSEIGNEMENT ||--o{ EVALUATION : "id_enseignement"
+PERIODE ||--o{ EVALUATION : "id_periode"
+ETABLISSEMENT |o--o{ TYPE_EVALUATION : "id_etablissement"
+TYPE_EVALUATION ||--o{ EVALUATION : "id_type_evaluation"
+STAFF ||--o{ EVALUATION : "id_staff_createur"
+STAFF |o--o{ EVALUATION : "id_staff_validateur"
+EVALUATION ||--o{ NOTE : "id_evaluation"
+INSCRIPTION ||--o{ NOTE : "id_inscription"
+STAFF ||--o{ NOTE : "id_staff_saisie"
+NOTE ||--o{ HISTORIQUE_NOTE : "id_note"
+STAFF ||--o{ HISTORIQUE_NOTE : "id_staff_modificateur"
+INSCRIPTION ||--o{ RESULTAT_MATIERE : "id_inscription"
+ENSEIGNEMENT ||--o{ RESULTAT_MATIERE : "id_enseignement"
+PERIODE ||--o{ RESULTAT_MATIERE : "id_periode"
+INSCRIPTION ||--o{ RESULTAT_PERIODE : "id_inscription"
+PERIODE ||--o{ RESULTAT_PERIODE : "id_periode"
+STAFF |o--o{ RESULTAT_PERIODE : "id_staff_validateur"
+INSCRIPTION ||--o| RESULTAT_ANNUEL : "id_inscription"
+NIVEAU |o--o{ RESULTAT_ANNUEL : "id_niveau_propose"
+STAFF |o--o{ RESULTAT_ANNUEL : "id_staff_validateur"
+INSCRIPTION ||--o{ DEROGATION_ACCES_RESULTAT : "id_inscription"
+PERIODE |o--o{ DEROGATION_ACCES_RESULTAT : "id_periode"
+STAFF ||--o{ DEROGATION_ACCES_RESULTAT : "id_staff_accordant"
+INSCRIPTION ||--o{ PRESENCE : "id_inscription"
+CRENEAU |o--o{ PRESENCE : "id_creneau"
+STAFF ||--o{ PRESENCE : "id_staff_enregistreur"
+INSCRIPTION ||--o{ INCIDENT : "id_inscription"
+ETABLISSEMENT |o--o{ TYPE_INCIDENT : "id_etablissement"
+TYPE_INCIDENT ||--o{ INCIDENT : "id_type_incident"
+STAFF ||--o{ INCIDENT : "id_staff_signalant"
+STAFF |o--o{ INCIDENT : "id_staff_examinateur"
+INCIDENT ||--o{ OBSERVATION_INCIDENT : "id_incident"
+STAFF ||--o{ OBSERVATION_INCIDENT : "id_staff_auteur"
+INCIDENT ||--o{ DECISION_DISCIPLINAIRE : "id_incident"
+STAFF ||--o{ DECISION_DISCIPLINAIRE : "id_staff_decideur"
+ANNEE_SCOLAIRE ||--o{ FRAIS_SCOLAIRE : "id_annee_scolaire"
+NIVEAU |o--o{ FRAIS_SCOLAIRE : "id_niveau"
+FRAIS_SCOLAIRE ||--o{ ECHEANCE : "id_frais_scolaire"
+PERIODE |o--o{ ECHEANCE : "id_periode"
+INSCRIPTION ||--o{ CREANCE : "id_inscription"
+ECHEANCE ||--o{ CREANCE : "id_echeance"
+ANNEE_SCOLAIRE ||--o{ REGLE_REDUCTION : "id_annee_scolaire"
+FRAIS_SCOLAIRE |o--o{ REGLE_REDUCTION : "id_frais_scolaire"
+REGLE_REDUCTION |o--o{ CREANCE : "id_regle_reduction"
+STAFF |o--o{ CREANCE : "id_staff_remise"
+ETABLISSEMENT ||--o{ PAIEMENT : "id_etablissement"
+ETABLISSEMENT |o--o{ MODE_PAIEMENT : "id_etablissement"
+MODE_PAIEMENT ||--o{ PAIEMENT : "id_mode_paiement"
+FOURNISSEUR_PAIEMENT |o--o{ MODE_PAIEMENT : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o| PAIEMENT : "id_transaction_en_ligne"
+PARENT |o--o{ PAIEMENT : "id_parent_payeur"
+STAFF |o--o{ PAIEMENT : "id_staff_enregistreur"
+STAFF |o--o{ PAIEMENT : "id_staff_validateur"
+PAIEMENT ||--o{ ALLOCATION_PAIEMENT : "id_paiement"
+CREANCE ||--o{ ALLOCATION_PAIEMENT : "id_creance"
+PAIEMENT ||--o{ RECU : "id_paiement"
+STAFF |o--o{ RECU : "id_staff_emetteur"
+ETABLISSEMENT ||--o{ RECU : "id_etablissement"
+PAIEMENT ||--o{ ANNULATION_PAIEMENT : "id_paiement"
+STAFF ||--o{ ANNULATION_PAIEMENT : "id_staff_demandeur"
+STAFF |o--o{ ANNULATION_PAIEMENT : "id_staff_approbateur"
+UTILISATEUR ||--o{ NOTIFICATION : "id_utilisateur"
+ETABLISSEMENT |o--o{ NOTIFICATION : "id_etablissement"
+NOTIFICATION ||--o{ ENVOI_NOTIFICATION : "id_notification"
+ETABLISSEMENT |o--o{ ENVOI_NOTIFICATION : "id_etablissement"
+ETABLISSEMENT ||--o{ DEMANDE : "id_etablissement"
+UTILISATEUR ||--o{ DEMANDE : "id_utilisateur_demandeur"
+ELEVE |o--o{ DEMANDE : "id_eleve"
+STAFF |o--o{ DEMANDE : "id_staff_traitant"
+ETABLISSEMENT ||--o{ RAPPORT : "id_etablissement"
+DOMAINE |o--o{ RAPPORT : "id_domaine"
+UTILISATEUR ||--o{ RAPPORT : "id_utilisateur_generateur"
+UTILISATEUR |o--o{ JOURNAL_AUDIT : "id_utilisateur"
+ETABLISSEMENT |o--o{ JOURNAL_AUDIT : "id_etablissement"
+ETABLISSEMENT |o--o{ PARAMETRE_SYSTEME : "id_etablissement"
+UTILISATEUR |o--o{ PARAMETRE_SYSTEME : "id_utilisateur_modificateur"
+ETABLISSEMENT |o--o{ CATEGORIE_RESSOURCE : "id_etablissement"
+ETABLISSEMENT ||--o{ RESSOURCE_NUMERIQUE : "id_etablissement"
+CATEGORIE_RESSOURCE |o--o{ RESSOURCE_NUMERIQUE : "id_categorie_ressource"
+MATIERE |o--o{ RESSOURCE_NUMERIQUE : "id_matiere"
+STAFF ||--o{ RESSOURCE_NUMERIQUE : "id_staff_auteur"
+STAFF |o--o{ RESSOURCE_NUMERIQUE : "id_staff_validateur"
+RESSOURCE_NUMERIQUE ||--o{ RESSOURCE_DIFFUSION : "id_ressource_numerique"
+NIVEAU |o--o{ RESSOURCE_DIFFUSION : "id_niveau"
+CLASSE |o--o{ RESSOURCE_DIFFUSION : "id_classe"
+STAFF ||--o{ RESSOURCE_DIFFUSION : "id_staff_diffuseur"
+EVALUATION |o--o{ RESSOURCE_DIFFUSION : "id_evaluation"
+RESSOURCE_NUMERIQUE ||--o{ CONSULTATION_RESSOURCE : "id_ressource_numerique"
+UTILISATEUR ||--o{ CONSULTATION_RESSOURCE : "id_utilisateur"
+RESSOURCE_DIFFUSION ||--o{ RENDU_TRAVAIL : "id_ressource_diffusion"
+INSCRIPTION ||--o{ RENDU_TRAVAIL : "id_inscription"
+STAFF |o--o{ RENDU_TRAVAIL : "id_staff_correcteur"
+ETABLISSEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_etablissement"
+FOURNISSEUR_PAIEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_fournisseur_paiement"
+FOURNISSEUR_PAIEMENT ||--o{ FOURNISSEUR_PAYS : "id_fournisseur_paiement"
+PAYS ||--o{ FOURNISSEUR_PAYS : "id_pays"
+CONFIG_PAIEMENT_ETABLISSEMENT ||--o{ TRANSACTION_EN_LIGNE : "id_config_paiement_etablissement"
+UTILISATEUR ||--o{ TRANSACTION_EN_LIGNE : "id_utilisateur_initiateur"
+PAYS ||--o{ TRANSACTION_EN_LIGNE : "id_pays"
+TRANSACTION_EN_LIGNE ||--o{ TRANSACTION_CREANCE : "id_transaction_en_ligne"
+CREANCE ||--o{ TRANSACTION_CREANCE : "id_creance"
+FOURNISSEUR_PAIEMENT ||--o{ NOTIFICATION_FOURNISSEUR : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o{ NOTIFICATION_FOURNISSEUR : "id_transaction_en_ligne"
+ETABLISSEMENT ||--o{ CONTRAT_PLATEFORME : "id_etablissement"
+ETABLISSEMENT ||--o{ FACTURE_COMMISSION : "id_etablissement"
+CONTRAT_PLATEFORME ||--o{ TRANSACTION_EN_LIGNE : "id_contrat_plateforme"
+FACTURE_COMMISSION |o--o{ TRANSACTION_EN_LIGNE : "id_facture_commission"
+UTILISATEUR ||--o{ APPAREIL_CONFIANCE : "id_utilisateur"
+UTILISATEUR ||--o{ SESSION_UTILISATEUR : "id_utilisateur"
+APPAREIL_CONFIANCE |o--o{ SESSION_UTILISATEUR : "id_appareil_confiance"
+ETABLISSEMENT |o--o{ SESSION_UTILISATEUR : "id_etablissement_actif"
+UTILISATEUR ||--o{ CODE_VERIFICATION : "id_utilisateur"
+ELEVE ||--o{ CARTE_ELEVE : "id_eleve"
+INSCRIPTION ||--o{ CARTE_ELEVE : "id_inscription"
+DOCUMENT |o--o| CARTE_ELEVE : "id_document"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

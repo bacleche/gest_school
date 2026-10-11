@@ -1,0 +1,226 @@
+@startuml MLD_09_paiement_en_ligne
+title MLD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  * id_fournisseur_paiement : BIGINT <<PK>>
+  --
+  * code : VARCHAR(30) UNIQUE
+  * libelle : VARCHAR(100)
+  * type_fournisseur : VARCHAR(20) IN (OPERATEUR,AGREGATEUR)
+  * supporte_partage : BOOLEAN DEFAULT FALSE
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  NB : nouveau fournisseur = une ligne + un adaptateur applicatif (aucune modification de la base)
+  NB : referentiel commun, modifiable par l'admin systeme seulement
+}
+entity "PAYS" as PAYS {
+  * id_pays : BIGINT <<PK>>
+  --
+  * code_iso : CHAR(2) UNIQUE
+  * nom : VARCHAR(100)
+  * indicatif_telephonique : VARCHAR(5) UNIQUE
+  * devise : VARCHAR(3)
+  ..
+  CHECK (char_length(devise) = 3)
+  NB : pays et devise deduits de l'indicatif du numero saisi (ex. XAF zone CEMAC, XOF zone UEMOA)
+  NB : XAF et XOF a parite fixe 1:1 (toutes deux arrimees a l'euro)
+}
+entity "FOURNISSEUR_PAYS" as FOURNISSEUR_PAYS {
+  * id_fournisseur_pays : BIGINT <<PK>>
+  --
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  * id_pays : BIGINT <<FK>>
+  prefixes_numero : VARCHAR(100)
+  * est_actif : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_fournisseur_paiement, id_pays)
+  NB : prefixes_numero = prefixes du reseau, pour proposer l'operateur a partir du numero
+}
+entity "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  * id_config_paiement_etablissement : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  * identifiant_marchand : VARCHAR(100)
+  * reference_secret : VARCHAR(200)
+  * environnement : VARCHAR(10) IN (TEST,PRODUCTION) DEFAULT 'TEST'
+  * frais_a_charge : VARCHAR(15) IN (PARENT,ETABLISSEMENT) DEFAULT 'PARENT'
+  * est_actif : BOOLEAN DEFAULT TRUE
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_etablissement, id_fournisseur_paiement, environnement)
+  NB : compte marchand propre a l'etablissement (l'argent va directement a l'ecole)
+  NB : aucune cle API en base : reference_secret = nom du secret dans le coffre (gestionnaire de secrets)
+  NB : lisible seulement par l'admin systeme et le DIRECTEUR (RLS)
+}
+entity "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  * id_transaction_en_ligne : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_config_paiement_etablissement : BIGINT <<FK>>
+  * id_utilisateur_initiateur : BIGINT <<FK>>
+  * id_pays : BIGINT <<FK>>
+  * id_contrat_plateforme : BIGINT <<FK>>
+  id_facture_commission : BIGINT <<FK>>
+  * numero_telephone : VARCHAR(20)
+  * reference_interne : VARCHAR(64) UNIQUE
+  reference_fournisseur : VARCHAR(100)
+  * montant : DECIMAL(12,2)
+  * frais_operateur : DECIMAL(12,2) DEFAULT 0
+  * taux_commission : DECIMAL(5,2)
+  * montant_commission : DECIMAL(12,2) DEFAULT 0
+  * mode_perception_commission : VARCHAR(12) IN (PARTAGE,FACTURATION)
+  * montant_total : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * taux_change : DECIMAL(12,6) DEFAULT 1
+  * statut : VARCHAR(15) IN (INITIEE,EN_ATTENTE,REUSSIE,ECHOUEE,EXPIREE) DEFAULT 'INITIEE'
+  code_erreur : VARCHAR(50)
+  message_erreur : VARCHAR(255)
+  * date_initiation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * date_expiration : TIMESTAMP
+  date_confirmation : TIMESTAMP
+  ..
+  UNIQUE (id_config_paiement_etablissement, reference_fournisseur) WHERE reference_fournisseur IS NOT NULL
+  CHECK (montant > 0 AND frais_operateur >= 0 AND taux_change > 0)
+  CHECK (date_expiration > date_initiation)
+  CHECK (taux_commission >= 0 AND montant_commission >= 0)
+  CHECK (id_facture_commission IS NULL OR mode_perception_commission = 'FACTURATION')
+  NB : taux_commission fige depuis le contrat actif ; montant_commission arrondi a l'unite (XAF/XOF sans centimes)
+  NB : PARTAGE si le fournisseur le supporte (part ecole / part plateforme), sinon FACTURATION mensuelle
+  CHECK (statut <> 'REUSSIE' OR (reference_fournisseur IS NOT NULL AND date_confirmation IS NOT NULL))
+  CHECK (montant_total = montant + frais_operateur et montant_commission s'ils sont a la charge du PARENT (trigger))
+  CHECK (pays du numero desservi par le fournisseur ; devise = devise du pays (trigger))
+  CHECK (initiateur = parent responsable financier des eleves des creances ciblees (trigger))
+  NB : montants en devise de la transaction ; montant x taux_change = montant credite a l'etablissement
+  NB : REUSSIE seulement apres re-verification du statut aupres du fournisseur (jamais sur la seule notification)
+  NB : REUSSIE => PAIEMENT (EN_LIGNE) + ALLOCATION_PAIEMENT + RECU crees dans la meme transaction SQL
+  NB : visible par son initiateur et par le personnel finance (RLS)
+  FK composites (+ id_etablissement) : id_config_paiement_etablissement, id_contrat_plateforme, id_facture_commission
+}
+entity "TRANSACTION_CREANCE" as TRANSACTION_CREANCE {
+  * id_transaction_creance : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_transaction_en_ligne : BIGINT <<FK>>
+  * id_creance : BIGINT <<FK>>
+  * montant : DECIMAL(12,2)
+  ..
+  UNIQUE (id_transaction_en_ligne, id_creance)
+  CHECK (montant > 0)
+  CHECK (somme des lignes = montant de la transaction ; montant <= reste du de la creance, reductions deduites (trigger))
+  NB : paiement partiel autorise
+  FK composites (+ id_etablissement) : id_transaction_en_ligne, id_creance
+}
+entity "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  * id_notification_fournisseur : BIGINT <<PK>>
+  --
+  * id_fournisseur_paiement : BIGINT <<FK>>
+  id_transaction_en_ligne : BIGINT <<FK>>
+  reference_fournisseur : VARCHAR(100)
+  * contenu_brut : TEXT
+  * signature_valide : BOOLEAN
+  adresse_ip : VARCHAR(45)
+  * statut_traitement : VARCHAR(20) IN (RECUE,TRAITEE,DOUBLON,REJETEE) DEFAULT 'RECUE'
+  * date_reception : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_traitement : TIMESTAMP
+  ..
+  NB : contenu_brut jamais modifie ; seuls statut_traitement et date_traitement evoluent
+  NB : DOUBLON = notification deja traitee (un paiement n'est jamais credite deux fois)
+  NB : table technique lisible par l'admin systeme seulement (RLS)
+}
+entity "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  * id_contrat_plateforme : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  reference_contrat : VARCHAR(50)
+  * taux_commission : DECIMAL(5,2) DEFAULT 1.00
+  * commission_a_charge : VARCHAR(15) IN (ETABLISSEMENT,PARENT) DEFAULT 'ETABLISSEMENT'
+  * date_debut : DATE
+  date_fin : DATE
+  * statut : VARCHAR(10) IN (ACTIF,SUSPENDU,RESILIE) DEFAULT 'ACTIF'
+  ..
+  CHECK (taux_commission >= 0 AND taux_commission <= 100)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  EXCLUDE USING gist (id_etablissement WITH =, daterange(date_debut, date_fin, '[]') WITH &&)
+  NB : commission sur les paiements EN_LIGNE uniquement ; a la charge de l'etablissement par defaut
+  NB : lisible par le DIRECTEUR, modifiable par l'admin systeme seulement (RLS)
+}
+entity "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  * id_facture_commission : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  * numero : VARCHAR(40) UNIQUE
+  * mois : DATE
+  * montant_total : DECIMAL(12,2)
+  * devise : VARCHAR(3)
+  * statut : VARCHAR(10) IN (BROUILLON,EMISE,PAYEE,ANNULEE) DEFAULT 'BROUILLON'
+  date_emission : TIMESTAMP
+  date_echeance : DATE
+  date_paiement : TIMESTAMP
+  fichier : VARCHAR(255)
+  ..
+  UNIQUE (id_etablissement, mois) WHERE statut <> 'ANNULEE'
+  CHECK (EXTRACT(DAY FROM mois) = 1)
+  CHECK (montant_total = somme des commissions FACTURATION du mois (trigger))
+  NB : facture de la plateforme a l'etablissement (commissions non percues par partage)
+  NB : lisible par le DIRECTEUR et l'admin systeme (RLS)
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "CREANCE" as CREANCE <<externe>> {
+  * id_creance : BIGINT <<PK>>
+}
+ETABLISSEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_etablissement"
+FOURNISSEUR_PAIEMENT ||--o{ CONFIG_PAIEMENT_ETABLISSEMENT : "id_fournisseur_paiement"
+FOURNISSEUR_PAIEMENT ||--o{ FOURNISSEUR_PAYS : "id_fournisseur_paiement"
+PAYS ||--o{ FOURNISSEUR_PAYS : "id_pays"
+CONFIG_PAIEMENT_ETABLISSEMENT ||--o{ TRANSACTION_EN_LIGNE : "id_config_paiement_etablissement"
+UTILISATEUR ||--o{ TRANSACTION_EN_LIGNE : "id_utilisateur_initiateur"
+PAYS ||--o{ TRANSACTION_EN_LIGNE : "id_pays"
+TRANSACTION_EN_LIGNE ||--o{ TRANSACTION_CREANCE : "id_transaction_en_ligne"
+CREANCE ||--o{ TRANSACTION_CREANCE : "id_creance"
+FOURNISSEUR_PAIEMENT ||--o{ NOTIFICATION_FOURNISSEUR : "id_fournisseur_paiement"
+TRANSACTION_EN_LIGNE |o--o{ NOTIFICATION_FOURNISSEUR : "id_transaction_en_ligne"
+ETABLISSEMENT ||--o{ CONTRAT_PLATEFORME : "id_etablissement"
+ETABLISSEMENT ||--o{ FACTURE_COMMISSION : "id_etablissement"
+CONTRAT_PLATEFORME ||--o{ TRANSACTION_EN_LIGNE : "id_contrat_plateforme"
+FACTURE_COMMISSION |o--o{ TRANSACTION_EN_LIGNE : "id_facture_commission"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

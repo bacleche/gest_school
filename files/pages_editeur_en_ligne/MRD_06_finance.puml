@@ -1,0 +1,68 @@
+@startuml MRD_06_finance
+title MRD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>FRAIS_SCOLAIRE</b> ( <u>id_frais_scolaire</u>, code, libelle, montant, obligatoire,
+        periodicite, est_actif, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b>, <b><i>#id_niveau</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_niveau -> NIVEAU</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_niveau</color>
+<color:#555555>   UNIQUE : (id_annee_scolaire, id_niveau, code) WHERE id_niveau IS NOT NULL ; (id_annee_scolaire, code) WHERE id_niveau IS NULL</color>
+
+<b>ECHEANCE</b> ( <u>id_echeance</u>, libelle, date_limite, montant, mois_concerne,
+        <b>#id_etablissement</b>, <b>#id_frais_scolaire</b>, <b><i>#id_periode</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_frais_scolaire -> FRAIS_SCOLAIRE ; id_periode -> PERIODE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_frais_scolaire, id_periode</color>
+
+<b>CREANCE</b> ( <u>id_creance</u>, montant_du, remise, remise_reduction, motif_remise,
+        statut, date_creation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_echeance</b>,
+        <b><i>#id_staff_remise</i></b>, <b><i>#id_regle_reduction</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_echeance -> ECHEANCE ; id_staff_remise -> STAFF ; id_regle_reduction -> REGLE_REDUCTION</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_echeance, id_staff_remise, id_regle_reduction</color>
+<color:#555555>   UNIQUE : (id_inscription, id_echeance)</color>
+
+<b>MODE_PAIEMENT</b> ( <u>id_mode_paiement</u>, code, libelle, est_actif, <b><i>#id_etablissement</i></b>,
+        <b><i>#id_fournisseur_paiement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_fournisseur_paiement -> FOURNISSEUR_PAIEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>PAIEMENT</b> ( <u>id_paiement</u>, numero, montant, date_paiement, canal,
+        reference_externe, nom_payeur, telephone_payeur, statut, date_validation,
+        observation, <b>#id_etablissement</b>, <b>#id_mode_paiement</b>, <b><i>#id_parent_payeur</i></b>, <b><i>#id_staff_enregistreur</i></b>,
+        <b><i>#id_transaction_en_ligne</i></b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_mode_paiement -> MODE_PAIEMENT ; id_parent_payeur -> PARENT ; id_staff_enregistreur -> STAFF ; id_transaction_en_ligne -> TRANSACTION_EN_LIGNE ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_enregistreur, id_staff_validateur, id_transaction_en_ligne</color>
+<color:#555555>   UNIQUE : (id_transaction_en_ligne) ; (id_etablissement, numero)</color>
+
+<b>ALLOCATION_PAIEMENT</b> ( <u>id_allocation_paiement</u>, montant_alloue, date_allocation, <b>#id_etablissement</b>, <b>#id_paiement</b>,
+        <b>#id_creance</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_paiement -> PAIEMENT ; id_creance -> CREANCE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_creance</color>
+<color:#555555>   UNIQUE : (id_paiement, id_creance)</color>
+
+<b>RECU</b> ( <u>id_recu</u>, numero, nom_payeur, montant, devise,
+        detail, code_verification, date_emission, fichier, statut,
+        <b>#id_paiement</b>, <b>#id_etablissement</b>, <b><i>#id_staff_emetteur</i></b> )
+<color:#555555>   FK : id_paiement -> PAIEMENT ; id_etablissement -> ETABLISSEMENT ; id_staff_emetteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_staff_emetteur</color>
+<color:#555555>   UNIQUE : (code_verification) ; (id_paiement) WHERE statut = 'VALIDE' ; (id_etablissement, numero)</color>
+
+<b>ANNULATION_PAIEMENT</b> ( <u>id_annulation_paiement</u>, motif, statut, date_demande, date_decision,
+        <b>#id_etablissement</b>, <b>#id_paiement</b>, <b>#id_staff_demandeur</b>, <b><i>#id_staff_approbateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_paiement -> PAIEMENT ; id_staff_demandeur -> STAFF ; id_staff_approbateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_paiement, id_staff_demandeur, id_staff_approbateur</color>
+<color:#555555>   UNIQUE : (id_paiement) WHERE statut IN ('DEMANDEE','APPROUVEE')</color>
+
+<b>REGLE_REDUCTION</b> ( <u>id_regle_reduction</u>, libelle, type_reduction, rang_enfant_min, mode_calcul,
+        valeur, est_active, <b>#id_etablissement</b>, <b>#id_annee_scolaire</b>, <b><i>#id_frais_scolaire</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_annee_scolaire -> ANNEE_SCOLAIRE ; id_frais_scolaire -> FRAIS_SCOLAIRE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_annee_scolaire, id_frais_scolaire</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

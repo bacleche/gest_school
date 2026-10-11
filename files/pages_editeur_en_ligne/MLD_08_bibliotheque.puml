@@ -1,0 +1,184 @@
+@startuml MLD_08_bibliotheque
+title MLD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  * id_categorie_ressource : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  description : VARCHAR(255)
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  * id_ressource_numerique : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>>
+  id_categorie_ressource : BIGINT <<FK>>
+  id_matiere : BIGINT <<FK>>
+  * id_staff_auteur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  auteur : VARCHAR(150)
+  editeur : VARCHAR(150)
+  annee_publication : SMALLINT
+  isbn : VARCHAR(20)
+  description : TEXT
+  * type_ressource : VARCHAR(20) IN (LIVRE,MANUEL,COURS,EXERCICE,VIDEO,AUDIO,AUTRE)
+  fichier : VARCHAR(255)
+  url : VARCHAR(500)
+  * format : VARCHAR(10) IN (PDF,EPUB,DOCX,MP4,MP3,LIEN,AUTRE)
+  langue : VARCHAR(10)
+  * licence : VARCHAR(20) IN (LECTURE_SEULE,TELECHARGEABLE) DEFAULT 'LECTURE_SEULE'
+  * statut : VARCHAR(20) IN (BROUILLON,SOUMISE,PUBLIEE,ARCHIVEE) DEFAULT 'BROUILLON'
+  * date_ajout : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_publication : TIMESTAMP
+  ..
+  CHECK (fichier IS NOT NULL OR url IS NOT NULL)
+  CHECK (id_staff_validateur IS NULL OR id_staff_validateur <> id_staff_auteur)
+  CHECK (statut <> 'PUBLIEE' OR date_publication IS NOT NULL)
+  CHECK (publication sans validateur seulement si toutes ses diffusions visent une classe de l'auteur (trigger))
+  NB : droits via le DOMAINE 'BIBLIOTHEQUE' (permissions AJOUTER, VALIDER, CONSULTER)
+  FK composites (+ id_etablissement) : id_matiere, id_staff_auteur, id_staff_validateur
+}
+entity "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  * id_ressource_diffusion : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_numerique : BIGINT <<FK>>
+  id_niveau : BIGINT <<FK>>
+  id_classe : BIGINT <<FK>>
+  * id_staff_diffuseur : BIGINT <<FK>>
+  id_evaluation : BIGINT <<FK>>
+  * date_debut : DATE
+  date_fin : DATE
+  * rendu_attendu : BOOLEAN DEFAULT FALSE
+  date_limite_rendu : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (id_niveau IS NULL OR id_classe IS NULL)
+  CHECK (date_fin IS NULL OR date_fin >= date_debut)
+  CHECK (NOT rendu_attendu OR id_classe IS NOT NULL)
+  CHECK (rendu_attendu OR date_limite_rendu IS NULL)
+  CHECK (diffusion a une classe : diffuseur affecte a cette classe ou habilite (trigger))
+  CHECK (diffusion a un niveau ou a l'etablissement => ressource validee, id_staff_validateur renseigne (trigger))
+  CHECK (id_evaluation IS NULL OR rendu_attendu)
+  CHECK (evaluation d'un enseignement de la classe visee (trigger))
+  NB : niveau et classe vides = tout l'etablissement ; date_fin vide = sans limite
+  NB : visible eleve/parent (RLS) si ressource PUBLIEE et diffusion en cours visant son etablissement, niveau ou classe
+  FK composites (+ id_etablissement) : id_ressource_numerique, id_niveau, id_classe, id_staff_diffuseur, id_evaluation
+}
+entity "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  * id_consultation_ressource : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_numerique : BIGINT <<FK>>
+  * id_utilisateur : BIGINT <<FK>>
+  * type_consultation : VARCHAR(20) IN (LECTURE,TELECHARGEMENT)
+  * date_consultation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (type_consultation <> 'TELECHARGEMENT' OR licence de la ressource = 'TELECHARGEABLE' (trigger))
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+  FK composites (+ id_etablissement) : id_ressource_numerique
+}
+entity "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  * id_rendu_travail : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_ressource_diffusion : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  id_staff_correcteur : BIGINT <<FK>>
+  * fichier : VARCHAR(255)
+  commentaire_eleve : TEXT
+  * date_rendu : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  * statut : VARCHAR(20) IN (RENDU,CORRIGE) DEFAULT 'RENDU'
+  commentaire_correction : TEXT
+  date_correction : TIMESTAMP
+  ..
+  UNIQUE (id_ressource_diffusion, id_inscription)
+  CHECK (statut <> 'CORRIGE' OR (id_staff_correcteur IS NOT NULL AND date_correction IS NOT NULL))
+  CHECK (diffusion avec rendu_attendu = TRUE et inscription active dans la classe visee (trigger))
+  NB : facultatif (utilise seulement si rendu_attendu) ; note via id_evaluation de la diffusion -> NOTE
+  NB : retard = date_rendu > date_limite_rendu (calcule a l'affichage, non stocke)
+  FK composites (+ id_etablissement) : id_ressource_diffusion, id_inscription, id_staff_correcteur
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "MATIERE" as MATIERE <<externe>> {
+  * id_matiere : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "CLASSE" as CLASSE <<externe>> {
+  * id_classe : BIGINT <<PK>>
+}
+entity "UTILISATEUR" as UTILISATEUR <<externe>> {
+  * id_utilisateur : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+entity "EVALUATION" as EVALUATION <<externe>> {
+  * id_evaluation : BIGINT <<PK>>
+}
+ETABLISSEMENT |o--o{ CATEGORIE_RESSOURCE : "id_etablissement"
+ETABLISSEMENT ||--o{ RESSOURCE_NUMERIQUE : "id_etablissement"
+CATEGORIE_RESSOURCE |o--o{ RESSOURCE_NUMERIQUE : "id_categorie_ressource"
+MATIERE |o--o{ RESSOURCE_NUMERIQUE : "id_matiere"
+STAFF ||--o{ RESSOURCE_NUMERIQUE : "id_staff_auteur"
+STAFF |o--o{ RESSOURCE_NUMERIQUE : "id_staff_validateur"
+RESSOURCE_NUMERIQUE ||--o{ RESSOURCE_DIFFUSION : "id_ressource_numerique"
+NIVEAU |o--o{ RESSOURCE_DIFFUSION : "id_niveau"
+CLASSE |o--o{ RESSOURCE_DIFFUSION : "id_classe"
+STAFF ||--o{ RESSOURCE_DIFFUSION : "id_staff_diffuseur"
+EVALUATION |o--o{ RESSOURCE_DIFFUSION : "id_evaluation"
+RESSOURCE_NUMERIQUE ||--o{ CONSULTATION_RESSOURCE : "id_ressource_numerique"
+UTILISATEUR ||--o{ CONSULTATION_RESSOURCE : "id_utilisateur"
+RESSOURCE_DIFFUSION ||--o{ RENDU_TRAVAIL : "id_ressource_diffusion"
+INSCRIPTION ||--o{ RENDU_TRAVAIL : "id_inscription"
+STAFF |o--o{ RENDU_TRAVAIL : "id_staff_correcteur"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

@@ -1,0 +1,153 @@
+@startuml MCD_04_evaluation
+title MCD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "TYPE_EVALUATION" as TYPE_EVALUATION {
+  <u>id_type_evaluation</u>
+  --
+  code
+  libelle
+  coefficient_defaut
+}
+class "EVALUATION" as EVALUATION {
+  <u>id_evaluation</u>
+  --
+  titre
+  date_evaluation
+  note_maximale
+  coefficient
+  statut
+  date_validation
+  date_creation
+}
+class "NOTE" as NOTE {
+  <u>id_note</u>
+  --
+  valeur
+  statut_note
+  observation
+  date_saisie
+  date_modification
+}
+class "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  <u>id_historique_note</u>
+  --
+  type_operation
+  ancienne_valeur
+  nouvelle_valeur
+  motif
+  date_modification
+}
+class "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  <u>id_resultat_matiere</u>
+  --
+  moyenne
+  rang
+  appreciation
+  statut
+  date_calcul
+}
+class "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  <u>id_resultat_periode</u>
+  --
+  moyenne_generale
+  rang
+  mention
+  appreciation_generale
+  statut
+  date_validation
+}
+class "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  <u>id_resultat_annuel</u>
+  --
+  moyenne_annuelle
+  rang
+  decision
+  appreciation
+  statut
+  date_deliberation
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "ENSEIGNEMENT" as ENSEIGNEMENT <<externe>> {
+  <u>id_enseignement</u>
+}
+class "PERIODE" as PERIODE <<externe>> {
+  <u>id_periode</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+EVALUATION "1,1" -- "0,n" ENSEIGNEMENT : EVALUER_DANS
+EVALUATION "1,1" -- "0,n" PERIODE : SE_DEROULER_EN
+TYPE_EVALUATION "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+EVALUATION "1,1" -- "0,n" TYPE_EVALUATION : ETRE_DE_TYPE
+EVALUATION "1,1" -- "0,n" STAFF : ETRE_CREEE_PAR
+EVALUATION "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+NOTE "1,1" -- "0,n" EVALUATION : PORTER_SUR_EVALUATION
+NOTE "1,1" -- "0,n" INSCRIPTION : ETRE_OBTENUE_PAR
+NOTE "1,1" -- "0,n" STAFF : ETRE_SAISIE_PAR
+HISTORIQUE_NOTE "1,1" -- "0,n" NOTE : TRACER_MODIFICATION
+HISTORIQUE_NOTE "1,1" -- "0,n" STAFF : ETRE_MODIFIEE_PAR
+RESULTAT_MATIERE "1,1" -- "0,n" INSCRIPTION : OBTENIR_RESULTAT
+RESULTAT_MATIERE "1,1" -- "0,n" ENSEIGNEMENT : PORTER_SUR_ENSEIGNEMENT
+RESULTAT_MATIERE "1,1" -- "0,n" PERIODE : ETRE_CALCULE_POUR
+RESULTAT_PERIODE "1,1" -- "0,n" INSCRIPTION : OBTENIR_BILAN
+RESULTAT_PERIODE "1,1" -- "0,n" PERIODE : ETRE_ETABLI_POUR
+RESULTAT_PERIODE "0,1" -- "0,n" STAFF : ETRE_VALIDE_PAR
+class "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  <u>id_derogation_acces_resultat</u>
+  --
+  motif
+  date_accord
+  date_fin_validite
+  est_active
+}
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" INSCRIPTION : CONCERNER_INSCRIPTION
+DEROGATION_ACCES_RESULTAT "0,1" -- "0,n" PERIODE : PORTER_SUR_PERIODE
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" STAFF : ETRE_ACCORDEE_PAR
+RESULTAT_ANNUEL "1,1" -- "0,1" INSCRIPTION : CONCLURE_ANNEE
+RESULTAT_ANNUEL "0,1" -- "0,n" NIVEAU : ORIENTER_VERS
+RESULTAT_ANNUEL "0,1" -- "0,n" STAFF : ETRE_DELIBERE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

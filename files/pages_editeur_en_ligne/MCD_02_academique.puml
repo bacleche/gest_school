@@ -1,0 +1,134 @@
+@startuml MCD_02_academique
+title MCD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  <u>id_annee_scolaire</u>
+  --
+  libelle
+  date_debut
+  date_fin
+  statut
+}
+class "PERIODE" as PERIODE {
+  <u>id_periode</u>
+  --
+  libelle
+  numero
+  date_debut
+  date_fin
+  statut
+}
+class "NIVEAU" as NIVEAU {
+  <u>id_niveau</u>
+  --
+  code
+  libelle
+  cycle
+  ordre
+}
+class "CLASSE" as CLASSE {
+  <u>id_classe</u>
+  --
+  nom
+  effectif_max
+  statut
+}
+class "MATIERE" as MATIERE {
+  <u>id_matiere</u>
+  --
+  code
+  libelle
+  description
+  est_active
+}
+class "ENSEIGNEMENT" as ENSEIGNEMENT {
+  <u>id_enseignement</u>
+  --
+  coefficient
+  volume_horaire_hebdo
+  date_debut
+  date_fin
+  statut
+}
+class "CRENEAU" as CRENEAU {
+  <u>id_creneau</u>
+  --
+  jour_semaine
+  heure_debut
+  heure_fin
+  date_debut
+  date_fin
+}
+class "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  <u>id_affectation_enseignant</u>
+  --
+  type_affectation
+  date_debut
+  date_fin
+  motif
+}
+class "SALLE" as SALLE {
+  <u>id_salle</u>
+  --
+  code
+  libelle
+  capacite
+  est_active
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+ANNEE_SCOLAIRE "1,1" -- "0,n" ETABLISSEMENT : RELEVER_DE
+PERIODE "1,1" -- "1,n" ANNEE_SCOLAIRE : FAIRE_PARTIE_DE
+NIVEAU "1,1" -- "0,n" ETABLISSEMENT : ETRE_DEFINI_PAR
+CLASSE "1,1" -- "0,n" ANNEE_SCOLAIRE : ETRE_OUVERTE_EN
+CLASSE "1,1" -- "0,n" NIVEAU : ETRE_DE_NIVEAU
+CLASSE "0,1" -- "0,n" STAFF : AVOIR_TITULAIRE
+MATIERE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENSEIGNEE_DANS
+ENSEIGNEMENT "1,1" -- "0,n" CLASSE : ETRE_DISPENSE_EN
+ENSEIGNEMENT "1,1" -- "0,n" MATIERE : PORTER_SUR_MATIERE
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" ENSEIGNEMENT : CONCERNER_ENSEIGNEMENT
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" STAFF : ETRE_AFFECTE
+CRENEAU "1,1" -- "0,n" ENSEIGNEMENT : PLANIFIER_POUR
+SALLE "1,1" -- "0,n" ETABLISSEMENT : APPARTENIR_A
+CLASSE "0,1" -- "0,n" SALLE : OCCUPER
+CRENEAU "0,1" -- "0,n" SALLE : SE_DEROULER_DANS
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

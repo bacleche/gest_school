@@ -1,0 +1,176 @@
+@startuml MCD_06_finance
+title MCD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  <u>id_frais_scolaire</u>
+  --
+  code
+  libelle
+  montant
+  obligatoire
+  periodicite
+  est_actif
+}
+class "ECHEANCE" as ECHEANCE {
+  <u>id_echeance</u>
+  --
+  libelle
+  date_limite
+  montant
+  mois_concerne
+}
+class "CREANCE" as CREANCE {
+  <u>id_creance</u>
+  --
+  montant_du
+  remise
+  remise_reduction
+  motif_remise
+  statut
+  date_creation
+}
+class "MODE_PAIEMENT" as MODE_PAIEMENT {
+  <u>id_mode_paiement</u>
+  --
+  code
+  libelle
+  est_actif
+}
+class "PAIEMENT" as PAIEMENT {
+  <u>id_paiement</u>
+  --
+  numero
+  montant
+  date_paiement
+  canal
+  reference_externe
+  nom_payeur
+  telephone_payeur
+  statut
+  date_validation
+  observation
+}
+class "RECU" as RECU {
+  <u>id_recu</u>
+  --
+  numero
+  nom_payeur
+  montant
+  devise
+  detail
+  code_verification
+  date_emission
+  fichier
+  statut
+}
+class "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  <u>id_annulation_paiement</u>
+  --
+  motif
+  statut
+  date_demande
+  date_decision
+}
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  <u>id_annee_scolaire</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "PERIODE" as PERIODE <<externe>> {
+  <u>id_periode</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "PARENT" as PARENT <<externe>> {
+  <u>id_parent</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE <<externe>> {
+  <u>id_transaction_en_ligne</u>
+}
+class "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT <<externe>> {
+  <u>id_fournisseur_paiement</u>
+}
+class "REGLE_REDUCTION" as REGLE_REDUCTION {
+  <u>id_regle_reduction</u>
+  --
+  libelle
+  type_reduction
+  rang_enfant_min
+  mode_calcul
+  valeur
+  est_active
+}
+REGLE_REDUCTION "1,1" -- "0,n" ANNEE_SCOLAIRE : S_APPLIQUER_EN
+REGLE_REDUCTION "0,1" -- "0,n" FRAIS_SCOLAIRE : PORTER_SUR_FRAIS
+CREANCE "0,1" -- "0,n" REGLE_REDUCTION : BENEFICIER_DE
+FRAIS_SCOLAIRE "1,1" -- "0,n" ANNEE_SCOLAIRE : ETRE_APPLICABLE_EN
+FRAIS_SCOLAIRE "0,1" -- "0,n" NIVEAU : VISER_NIVEAU
+ECHEANCE "1,1" -- "0,n" FRAIS_SCOLAIRE : ETRE_ECHELONNE_EN
+ECHEANCE "0,1" -- "0,n" PERIODE : TOMBER_EN
+CREANCE "1,1" -- "0,n" INSCRIPTION : DEVOIR_PAR
+CREANCE "1,1" -- "0,n" ECHEANCE : PORTER_SUR_ECHEANCE
+CREANCE "0,1" -- "0,n" STAFF : ETRE_REMISE_PAR
+PAIEMENT "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENCAISSE_PAR
+MODE_PAIEMENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+PAIEMENT "1,1" -- "0,n" MODE_PAIEMENT : UTILISER_MODE
+PAIEMENT "0,1" -- "0,n" PARENT : ETRE_VERSE_PAR
+PAIEMENT "0,1" -- "0,n" STAFF : ETRE_ENREGISTRE_PAR
+PAIEMENT "0,1" -- "0,n" STAFF : ETRE_VALIDE_PAR
+PAIEMENT "0,1" -- "0,1" TRANSACTION_EN_LIGNE : RESULTER_DE
+MODE_PAIEMENT "0,1" -- "0,n" FOURNISSEUR_PAIEMENT : CORRESPONDRE_A
+PAIEMENT "0,n" -- "0,n" CREANCE : REPARTIR
+class "REPARTIR" as REPARTIR <<ASSOCIATION>> {
+  montant_alloue
+  date_allocation
+}
+(PAIEMENT, CREANCE) .. REPARTIR
+RECU "1,1" -- "0,n" PAIEMENT : JUSTIFIER_PAR
+RECU "0,1" -- "0,n" STAFF : ETRE_EMIS_PAR
+RECU "1,1" -- "0,n" ETABLISSEMENT : ETRE_NUMEROTE_DANS
+ANNULATION_PAIEMENT "1,1" -- "0,n" PAIEMENT : VISER_PAIEMENT
+ANNULATION_PAIEMENT "1,1" -- "0,n" STAFF : ETRE_DEMANDEE_PAR
+ANNULATION_PAIEMENT "0,1" -- "0,n" STAFF : ETRE_APPROUVEE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

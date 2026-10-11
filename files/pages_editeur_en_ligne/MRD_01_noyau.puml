@@ -1,0 +1,64 @@
+@startuml MRD_01_noyau
+title MRD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>ETABLISSEMENT</b> ( <u>id_etablissement</u>, code, nom, type_etablissement, adresse,
+        ville, pays, telephone, email, logo,
+        devise, est_actif, date_creation )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>UTILISATEUR</b> ( <u>id_utilisateur</u>, email, mot_de_passe_hash, nom, prenom,
+        telephone, identifiant, photo, est_admin_systeme, statut_compte,
+        derniere_connexion, tentatives_echec, verrouille_jusqu_a, date_changement_mdp, telephone_verifie_le,
+        email_verifie_le, doit_changer_mdp, type_secret, methode_2fa, reference_secret_2fa,
+        canal_notification_prefere, date_anonymisation, date_creation )
+<color:#555555>   UNIQUE : (identifiant) ; (telephone) ; (email)</color>
+
+<b>STAFF</b> ( <u>id_staff</u>, type_staff, matricule, fonction, specialite,
+        date_embauche, date_fin, statut, date_creation, <b>#id_utilisateur</b>,
+        <b>#id_etablissement</b>, <b><i>#id_staff_createur</i></b> )
+<color:#555555>   FK : id_utilisateur -> UTILISATEUR ; id_etablissement -> ETABLISSEMENT ; id_staff_createur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_createur</color>
+<color:#555555>   UNIQUE : (id_etablissement, matricule) ; (id_utilisateur, id_etablissement)</color>
+
+<b>DOMAINE</b> ( <u>id_domaine</u>, code, libelle, description )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>TYPE_ACTION</b> ( <u>id_type_action</u>, code, libelle, categorie )
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>PERMISSION</b> ( <u>id_permission</u>, code, libelle, ressource, description,
+        <b>#id_domaine</b>, <b>#id_type_action</b> )
+<color:#555555>   FK : id_domaine -> DOMAINE ; id_type_action -> TYPE_ACTION</color>
+<color:#555555>   UNIQUE : (code)</color>
+
+<b>ATTRIBUTION_PERMISSION</b> ( <u>id_attribution_permission</u>, date_attribution, date_expiration, est_active, <b>#id_etablissement</b>,
+        <b>#id_staff_beneficiaire</b>, <b>#id_permission</b>, <b>#id_staff_attribuant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_staff_beneficiaire -> STAFF ; id_permission -> PERMISSION ; id_staff_attribuant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant</color>
+<color:#555555>   UNIQUE : (id_staff_beneficiaire, id_permission) WHERE est_active = TRUE</color>
+
+<b>ROLE</b> ( <u>id_role</u>, code, libelle, description, est_actif,
+        <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>ROLE_PERMISSION</b> ( <u>id_role_permission</u>, <b>#id_role</b>, <b>#id_permission</b> )
+<color:#555555>   FK : id_role -> ROLE ; id_permission -> PERMISSION</color>
+<color:#555555>   UNIQUE : (id_role, id_permission)</color>
+
+<b>ATTRIBUTION_ROLE</b> ( <u>id_attribution_role</u>, date_attribution, date_expiration, est_active, <b>#id_etablissement</b>,
+        <b>#id_staff_beneficiaire</b>, <b>#id_role</b>, <b>#id_staff_attribuant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_staff_beneficiaire -> STAFF ; id_role -> ROLE ; id_staff_attribuant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_staff_beneficiaire, id_staff_attribuant</color>
+<color:#555555>   UNIQUE : (id_staff_beneficiaire, id_role) WHERE est_active = TRUE</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

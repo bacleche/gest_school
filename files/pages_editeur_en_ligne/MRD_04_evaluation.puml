@@ -1,0 +1,60 @@
+@startuml MRD_04_evaluation
+title MRD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>TYPE_EVALUATION</b> ( <u>id_type_evaluation</u>, code, libelle, coefficient_defaut, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>EVALUATION</b> ( <u>id_evaluation</u>, titre, date_evaluation, note_maximale, coefficient,
+        statut, date_validation, date_creation, <b>#id_etablissement</b>, <b>#id_enseignement</b>,
+        <b>#id_periode</b>, <b>#id_type_evaluation</b>, <b>#id_staff_createur</b>, <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_enseignement -> ENSEIGNEMENT ; id_periode -> PERIODE ; id_type_evaluation -> TYPE_EVALUATION ; id_staff_createur -> STAFF ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_enseignement, id_periode, id_staff_createur, id_staff_validateur</color>
+
+<b>NOTE</b> ( <u>id_note</u>, valeur, statut_note, observation, date_saisie,
+        date_modification, <b>#id_etablissement</b>, <b>#id_evaluation</b>, <b>#id_inscription</b>, <b>#id_staff_saisie</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_evaluation -> EVALUATION ; id_inscription -> INSCRIPTION ; id_staff_saisie -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_evaluation, id_inscription, id_staff_saisie</color>
+<color:#555555>   UNIQUE : (id_evaluation, id_inscription)</color>
+
+<b>HISTORIQUE_NOTE</b> ( <u>id_historique_note</u>, type_operation, ancienne_valeur, nouvelle_valeur, motif,
+        date_modification, <b>#id_etablissement</b>, <b>#id_note</b>, <b>#id_staff_modificateur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_note -> NOTE ; id_staff_modificateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_note, id_staff_modificateur</color>
+
+<b>RESULTAT_MATIERE</b> ( <u>id_resultat_matiere</u>, moyenne, rang, appreciation, statut,
+        date_calcul, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_enseignement</b>, <b>#id_periode</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_enseignement -> ENSEIGNEMENT ; id_periode -> PERIODE</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_enseignement, id_periode</color>
+<color:#555555>   UNIQUE : (id_inscription, id_enseignement, id_periode)</color>
+
+<b>RESULTAT_PERIODE</b> ( <u>id_resultat_periode</u>, moyenne_generale, rang, mention, appreciation_generale,
+        statut, date_validation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_periode</b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_periode -> PERIODE ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_inscription, id_periode)</color>
+
+<b>RESULTAT_ANNUEL</b> ( <u>id_resultat_annuel</u>, moyenne_annuelle, rang, decision, appreciation,
+        statut, date_deliberation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_niveau_propose</i></b>,
+        <b><i>#id_staff_validateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_niveau_propose -> NIVEAU ; id_staff_validateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_niveau_propose, id_staff_validateur</color>
+<color:#555555>   UNIQUE : (id_inscription)</color>
+
+<b>DEROGATION_ACCES_RESULTAT</b> ( <u>id_derogation_acces_resultat</u>, motif, date_accord, date_fin_validite, est_active,
+        <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_periode</i></b>, <b>#id_staff_accordant</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_periode -> PERIODE ; id_staff_accordant -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_accordant</color>
+<color:#555555>   UNIQUE : (id_inscription, id_periode) WHERE est_active AND id_periode IS NOT NULL ; (id_inscription) WHERE est_active AND id_periode IS NULL</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

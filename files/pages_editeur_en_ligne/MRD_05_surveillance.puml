@@ -1,0 +1,40 @@
+@startuml MRD_05_surveillance
+title MRD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Courier
+note as N
+<b>PRESENCE</b> ( <u>id_presence</u>, date_presence, statut, minutes_retard, est_justifiee,
+        motif, date_enregistrement, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b><i>#id_creneau</i></b>,
+        <b>#id_staff_enregistreur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_creneau -> CRENEAU ; id_staff_enregistreur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_creneau, id_staff_enregistreur</color>
+<color:#555555>   UNIQUE : (id_inscription, id_creneau, date_presence) WHERE id_creneau IS NOT NULL ; (id_inscription, date_presence) WHERE id_creneau IS NULL</color>
+
+<b>TYPE_INCIDENT</b> ( <u>id_type_incident</u>, code, libelle, gravite_defaut, <b><i>#id_etablissement</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT</color>
+<color:#555555>   UNIQUE : (id_etablissement, code) WHERE id_etablissement IS NOT NULL ; (code) WHERE id_etablissement IS NULL</color>
+
+<b>INCIDENT</b> ( <u>id_incident</u>, date_incident, lieu, description, gravite,
+        statut, date_creation, <b>#id_etablissement</b>, <b>#id_inscription</b>, <b>#id_type_incident</b>,
+        <b>#id_staff_signalant</b>, <b><i>#id_staff_examinateur</i></b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_inscription -> INSCRIPTION ; id_type_incident -> TYPE_INCIDENT ; id_staff_signalant -> STAFF ; id_staff_examinateur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_inscription, id_staff_signalant, id_staff_examinateur</color>
+
+<b>OBSERVATION_INCIDENT</b> ( <u>id_observation_incident</u>, contenu, date_observation, <b>#id_etablissement</b>, <b>#id_incident</b>,
+        <b>#id_staff_auteur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_incident -> INCIDENT ; id_staff_auteur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_incident, id_staff_auteur</color>
+
+<b>DECISION_DISCIPLINAIRE</b> ( <u>id_decision_disciplinaire</u>, type_sanction, description, date_decision, date_debut,
+        date_fin, statut, <b>#id_etablissement</b>, <b>#id_incident</b>, <b>#id_staff_decideur</b> )
+<color:#555555>   FK : id_etablissement -> ETABLISSEMENT ; id_incident -> INCIDENT ; id_staff_decideur -> STAFF</color>
+<color:#555555>   FK composites (+ id_etablissement) : id_incident, id_staff_decideur</color>
+end note
+legend bottom
+  Notation : TABLE ( <u>cle_primaire</u>, attributs, <b>#cle_etrangere</b> )
+  <b><i>#cle_etrangere</i></b> en italique = FK facultative (NULL autorise)
+  Chaque table liste ses FK (colonne -> table referencee) et ses contraintes UNIQUE.
+  UNIQUE ... WHERE = index unique partiel. Regles CHECK, triggers et RLS : voir le MLD.
+  FK composites : la FK inclut id_etablissement (isolation entre etablissements).
+endlegend
+@enduml

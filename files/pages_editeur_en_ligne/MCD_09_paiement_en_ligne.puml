@@ -1,0 +1,152 @@
+@startuml MCD_09_paiement_en_ligne
+title MCD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  <u>id_fournisseur_paiement</u>
+  --
+  code
+  libelle
+  type_fournisseur
+  supporte_partage
+  est_actif
+}
+class "PAYS" as PAYS {
+  <u>id_pays</u>
+  --
+  code_iso
+  nom
+  indicatif_telephonique
+  devise
+}
+class "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  <u>id_config_paiement_etablissement</u>
+  --
+  identifiant_marchand
+  reference_secret
+  environnement
+  frais_a_charge
+  est_actif
+  date_creation
+}
+class "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  <u>id_transaction_en_ligne</u>
+  --
+  numero_telephone
+  reference_interne
+  reference_fournisseur
+  montant
+  frais_operateur
+  taux_commission
+  montant_commission
+  mode_perception_commission
+  montant_total
+  devise
+  taux_change
+  statut
+  code_erreur
+  message_erreur
+  date_initiation
+  date_expiration
+  date_confirmation
+}
+class "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  <u>id_notification_fournisseur</u>
+  --
+  reference_fournisseur
+  contenu_brut
+  signature_valide
+  adresse_ip
+  statut_traitement
+  date_reception
+  date_traitement
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "CREANCE" as CREANCE <<externe>> {
+  <u>id_creance</u>
+}
+class "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  <u>id_contrat_plateforme</u>
+  --
+  reference_contrat
+  taux_commission
+  commission_a_charge
+  date_debut
+  date_fin
+  statut
+}
+class "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  <u>id_facture_commission</u>
+  --
+  numero
+  mois
+  montant_total
+  devise
+  statut
+  date_emission
+  date_echeance
+  date_paiement
+  fichier
+}
+CONTRAT_PLATEFORME "1,1" -- "0,n" ETABLISSEMENT : LIER_A
+FACTURE_COMMISSION "1,1" -- "0,n" ETABLISSEMENT : ETRE_FACTUREE_A
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONTRAT_PLATEFORME : RELEVER_DU_CONTRAT
+TRANSACTION_EN_LIGNE "0,1" -- "0,n" FACTURE_COMMISSION : ETRE_INCLUSE_DANS
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" ETABLISSEMENT : CONFIGURER_ENCAISSEMENT
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" FOURNISSEUR_PAIEMENT : UTILISER_FOURNISSEUR
+FOURNISSEUR_PAIEMENT "0,n" -- "0,n" PAYS : DESSERVIR
+class "DESSERVIR" as DESSERVIR <<ASSOCIATION>> {
+  prefixes_numero
+  est_actif
+}
+(FOURNISSEUR_PAIEMENT, PAYS) .. DESSERVIR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONFIG_PAIEMENT_ETABLISSEMENT : PASSER_PAR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" UTILISATEUR : ETRE_INITIEE_PAR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" PAYS : PROVENIR_DE
+TRANSACTION_EN_LIGNE "0,n" -- "0,n" CREANCE : CIBLER
+class "CIBLER" as CIBLER <<ASSOCIATION>> {
+  montant
+}
+(TRANSACTION_EN_LIGNE, CREANCE) .. CIBLER
+NOTIFICATION_FOURNISSEUR "1,1" -- "0,n" FOURNISSEUR_PAIEMENT : EMANER_DU_FOURNISSEUR
+NOTIFICATION_FOURNISSEUR "0,1" -- "0,n" TRANSACTION_EN_LIGNE : CONCERNER_TRANSACTION
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

@@ -1,0 +1,1811 @@
+' ============================================================
+' MCD - SYSTEME DE GESTION SCOLAIRE (notation Merise / PlantUML)
+' 11 pages : vue d'ensemble + 10 domaines fonctionnels.
+' Generer (recommande, sans limite de taille) : plantuml -tsvg MCD_gestion_scolaire.puml
+' ============================================================
+@startuml MCD_00_vue_ensemble
+title MCD - Vue d'ensemble (toutes les entites)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+' Vue d'ensemble compacte : sinon l'image depasse 4096 px et l'editeur la coupe
+skinparam nodesep 25
+skinparam ranksep 50
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+package "1 - Noyau, comptes et permissions" {
+class "ETABLISSEMENT" as ETABLISSEMENT {
+  <u>id_etablissement</u>
+}
+class "UTILISATEUR" as UTILISATEUR {
+  <u>id_utilisateur</u>
+}
+class "STAFF" as STAFF {
+  <u>id_staff</u>
+}
+class "DOMAINE" as DOMAINE {
+  <u>id_domaine</u>
+}
+class "TYPE_ACTION" as TYPE_ACTION {
+  <u>id_type_action</u>
+}
+class "ROLE" as ROLE {
+  <u>id_role</u>
+}
+class "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  <u>id_attribution_role</u>
+}
+class "PERMISSION" as PERMISSION {
+  <u>id_permission</u>
+}
+class "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  <u>id_attribution_permission</u>
+}
+}
+package "2 - Structure academique et emploi du temps" {
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  <u>id_annee_scolaire</u>
+}
+class "PERIODE" as PERIODE {
+  <u>id_periode</u>
+}
+class "NIVEAU" as NIVEAU {
+  <u>id_niveau</u>
+}
+class "CLASSE" as CLASSE {
+  <u>id_classe</u>
+}
+class "MATIERE" as MATIERE {
+  <u>id_matiere</u>
+}
+class "ENSEIGNEMENT" as ENSEIGNEMENT {
+  <u>id_enseignement</u>
+}
+class "CRENEAU" as CRENEAU {
+  <u>id_creneau</u>
+}
+class "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  <u>id_affectation_enseignant</u>
+}
+class "SALLE" as SALLE {
+  <u>id_salle</u>
+}
+}
+package "3 - Secretariat : eleves, parents, inscriptions, documents" {
+class "PARENT" as PARENT {
+  <u>id_parent</u>
+}
+class "ELEVE" as ELEVE {
+  <u>id_eleve</u>
+}
+class "INSCRIPTION" as INSCRIPTION {
+  <u>id_inscription</u>
+}
+class "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  <u>id_type_document</u>
+}
+class "DOCUMENT" as DOCUMENT {
+  <u>id_document</u>
+}
+class "FAMILLE" as FAMILLE {
+  <u>id_famille</u>
+}
+}
+package "4 - Responsabilite pedagogique : evaluations et resultats" {
+class "TYPE_EVALUATION" as TYPE_EVALUATION {
+  <u>id_type_evaluation</u>
+}
+class "EVALUATION" as EVALUATION {
+  <u>id_evaluation</u>
+}
+class "NOTE" as NOTE {
+  <u>id_note</u>
+}
+class "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  <u>id_historique_note</u>
+}
+class "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  <u>id_resultat_matiere</u>
+}
+class "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  <u>id_resultat_periode</u>
+}
+class "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  <u>id_resultat_annuel</u>
+}
+class "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  <u>id_derogation_acces_resultat</u>
+}
+}
+package "5 - Surveillance : presences, incidents, discipline" {
+class "PRESENCE" as PRESENCE {
+  <u>id_presence</u>
+}
+class "TYPE_INCIDENT" as TYPE_INCIDENT {
+  <u>id_type_incident</u>
+}
+class "INCIDENT" as INCIDENT {
+  <u>id_incident</u>
+}
+class "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  <u>id_observation_incident</u>
+}
+class "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  <u>id_decision_disciplinaire</u>
+}
+}
+package "6 - Finance : frais, paiements, recus" {
+class "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  <u>id_frais_scolaire</u>
+}
+class "ECHEANCE" as ECHEANCE {
+  <u>id_echeance</u>
+}
+class "CREANCE" as CREANCE {
+  <u>id_creance</u>
+}
+class "MODE_PAIEMENT" as MODE_PAIEMENT {
+  <u>id_mode_paiement</u>
+}
+class "PAIEMENT" as PAIEMENT {
+  <u>id_paiement</u>
+}
+class "RECU" as RECU {
+  <u>id_recu</u>
+}
+class "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  <u>id_annulation_paiement</u>
+}
+class "REGLE_REDUCTION" as REGLE_REDUCTION {
+  <u>id_regle_reduction</u>
+}
+}
+package "7 - Transversal : notifications, demandes, rapports, audit" {
+class "NOTIFICATION" as NOTIFICATION {
+  <u>id_notification</u>
+}
+class "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  <u>id_envoi_notification</u>
+}
+class "DEMANDE" as DEMANDE {
+  <u>id_demande</u>
+}
+class "RAPPORT" as RAPPORT {
+  <u>id_rapport</u>
+}
+class "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  <u>id_journal_audit</u>
+}
+class "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  <u>id_parametre_systeme</u>
+}
+}
+package "8 - Bibliotheque numerique : ressources, diffusions, rendus" {
+class "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  <u>id_categorie_ressource</u>
+}
+class "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  <u>id_ressource_numerique</u>
+}
+class "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  <u>id_ressource_diffusion</u>
+}
+class "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  <u>id_consultation_ressource</u>
+}
+class "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  <u>id_rendu_travail</u>
+}
+}
+package "9 - Finance : paiement en ligne (Mobile Money, agregateurs)" {
+class "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  <u>id_fournisseur_paiement</u>
+}
+class "PAYS" as PAYS {
+  <u>id_pays</u>
+}
+class "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  <u>id_config_paiement_etablissement</u>
+}
+class "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  <u>id_transaction_en_ligne</u>
+}
+class "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  <u>id_notification_fournisseur</u>
+}
+class "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  <u>id_contrat_plateforme</u>
+}
+class "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  <u>id_facture_commission</u>
+}
+}
+package "10 - Authentification, sessions et carte eleve" {
+class "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  <u>id_appareil_confiance</u>
+}
+class "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  <u>id_session_utilisateur</u>
+}
+class "CODE_VERIFICATION" as CODE_VERIFICATION {
+  <u>id_code_verification</u>
+}
+class "CARTE_ELEVE" as CARTE_ELEVE {
+  <u>id_carte_eleve</u>
+}
+}
+STAFF "1,1" -- "0,n" UTILISATEUR
+STAFF "1,1" -- "0,n" ETABLISSEMENT
+STAFF "0,1" -- "0,n" STAFF
+PERMISSION "1,1" -- "0,n" DOMAINE
+PERMISSION "1,1" -- "0,n" TYPE_ACTION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" PERMISSION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF
+ROLE "0,1" -- "0,n" ETABLISSEMENT
+ROLE "0,n" -- "0,n" PERMISSION : COMPOSER
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF
+ATTRIBUTION_ROLE "1,1" -- "0,n" ROLE
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF
+ANNEE_SCOLAIRE "1,1" -- "0,n" ETABLISSEMENT
+PERIODE "1,1" -- "1,n" ANNEE_SCOLAIRE
+NIVEAU "1,1" -- "0,n" ETABLISSEMENT
+CLASSE "1,1" -- "0,n" ANNEE_SCOLAIRE
+CLASSE "1,1" -- "0,n" NIVEAU
+CLASSE "0,1" -- "0,n" STAFF
+MATIERE "1,1" -- "0,n" ETABLISSEMENT
+ENSEIGNEMENT "1,1" -- "0,n" CLASSE
+ENSEIGNEMENT "1,1" -- "0,n" MATIERE
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" ENSEIGNEMENT
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" STAFF
+CRENEAU "1,1" -- "0,n" ENSEIGNEMENT
+SALLE "1,1" -- "0,n" ETABLISSEMENT
+CLASSE "0,1" -- "0,n" SALLE
+CRENEAU "0,1" -- "0,n" SALLE
+PARENT "1,1" -- "0,1" UTILISATEUR
+ELEVE "1,1" -- "0,n" ETABLISSEMENT
+ELEVE "0,1" -- "0,n" UTILISATEUR
+ELEVE "1,n" -- "0,n" PARENT : LIEN_PARENTE
+INSCRIPTION "1,1" -- "0,n" ELEVE
+INSCRIPTION "1,1" -- "0,n" CLASSE
+INSCRIPTION "1,1" -- "0,n" ANNEE_SCOLAIRE
+INSCRIPTION "1,1" -- "0,n" STAFF
+INSCRIPTION "0,1" -- "0,n" STAFF
+DOCUMENT "1,1" -- "0,n" ELEVE
+TYPE_DOCUMENT "0,1" -- "0,n" ETABLISSEMENT
+DOCUMENT "1,1" -- "0,n" TYPE_DOCUMENT
+DOCUMENT "0,1" -- "0,n" STAFF
+EVALUATION "1,1" -- "0,n" ENSEIGNEMENT
+EVALUATION "1,1" -- "0,n" PERIODE
+TYPE_EVALUATION "0,1" -- "0,n" ETABLISSEMENT
+EVALUATION "1,1" -- "0,n" TYPE_EVALUATION
+EVALUATION "1,1" -- "0,n" STAFF
+EVALUATION "0,1" -- "0,n" STAFF
+NOTE "1,1" -- "0,n" EVALUATION
+NOTE "1,1" -- "0,n" INSCRIPTION
+NOTE "1,1" -- "0,n" STAFF
+HISTORIQUE_NOTE "1,1" -- "0,n" NOTE
+HISTORIQUE_NOTE "1,1" -- "0,n" STAFF
+RESULTAT_MATIERE "1,1" -- "0,n" INSCRIPTION
+RESULTAT_MATIERE "1,1" -- "0,n" ENSEIGNEMENT
+RESULTAT_MATIERE "1,1" -- "0,n" PERIODE
+RESULTAT_PERIODE "1,1" -- "0,n" INSCRIPTION
+RESULTAT_PERIODE "1,1" -- "0,n" PERIODE
+RESULTAT_PERIODE "0,1" -- "0,n" STAFF
+RESULTAT_ANNUEL "1,1" -- "0,1" INSCRIPTION
+RESULTAT_ANNUEL "0,1" -- "0,n" NIVEAU
+RESULTAT_ANNUEL "0,1" -- "0,n" STAFF
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" INSCRIPTION
+DEROGATION_ACCES_RESULTAT "0,1" -- "0,n" PERIODE
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" STAFF
+PRESENCE "1,1" -- "0,n" INSCRIPTION
+PRESENCE "0,1" -- "0,n" CRENEAU
+PRESENCE "1,1" -- "0,n" STAFF
+INCIDENT "1,1" -- "0,n" INSCRIPTION
+TYPE_INCIDENT "0,1" -- "0,n" ETABLISSEMENT
+INCIDENT "1,1" -- "0,n" TYPE_INCIDENT
+INCIDENT "1,1" -- "0,n" STAFF
+INCIDENT "0,1" -- "0,n" STAFF
+OBSERVATION_INCIDENT "1,1" -- "0,n" INCIDENT
+OBSERVATION_INCIDENT "1,1" -- "0,n" STAFF
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" INCIDENT
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" STAFF
+FRAIS_SCOLAIRE "1,1" -- "0,n" ANNEE_SCOLAIRE
+FRAIS_SCOLAIRE "0,1" -- "0,n" NIVEAU
+ECHEANCE "1,1" -- "0,n" FRAIS_SCOLAIRE
+ECHEANCE "0,1" -- "0,n" PERIODE
+CREANCE "1,1" -- "0,n" INSCRIPTION
+CREANCE "1,1" -- "0,n" ECHEANCE
+CREANCE "0,1" -- "0,n" STAFF
+PAIEMENT "1,1" -- "0,n" ETABLISSEMENT
+MODE_PAIEMENT "0,1" -- "0,n" ETABLISSEMENT
+PAIEMENT "1,1" -- "0,n" MODE_PAIEMENT
+PAIEMENT "0,1" -- "0,n" PARENT
+PAIEMENT "0,1" -- "0,n" STAFF
+PAIEMENT "0,1" -- "0,n" STAFF
+PAIEMENT "0,n" -- "0,n" CREANCE : REPARTIR
+RECU "1,1" -- "0,n" PAIEMENT
+RECU "0,1" -- "0,n" STAFF
+RECU "1,1" -- "0,n" ETABLISSEMENT
+ANNULATION_PAIEMENT "1,1" -- "0,n" PAIEMENT
+ANNULATION_PAIEMENT "1,1" -- "0,n" STAFF
+ANNULATION_PAIEMENT "0,1" -- "0,n" STAFF
+NOTIFICATION "1,1" -- "0,n" UTILISATEUR
+NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT
+ENVOI_NOTIFICATION "1,1" -- "0,n" NOTIFICATION
+ENVOI_NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT
+DEMANDE "1,1" -- "0,n" ETABLISSEMENT
+DEMANDE "1,1" -- "0,n" UTILISATEUR
+DEMANDE "0,1" -- "0,n" ELEVE
+DEMANDE "0,1" -- "0,n" STAFF
+RAPPORT "1,1" -- "0,n" ETABLISSEMENT
+RAPPORT "0,1" -- "0,n" DOMAINE
+RAPPORT "1,1" -- "0,n" UTILISATEUR
+JOURNAL_AUDIT "0,1" -- "0,n" UTILISATEUR
+JOURNAL_AUDIT "0,1" -- "0,n" ETABLISSEMENT
+PARAMETRE_SYSTEME "0,1" -- "0,n" ETABLISSEMENT
+PARAMETRE_SYSTEME "0,1" -- "0,n" UTILISATEUR
+CATEGORIE_RESSOURCE "0,1" -- "0,n" ETABLISSEMENT
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" ETABLISSEMENT
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" CATEGORIE_RESSOURCE
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" MATIERE
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" STAFF
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" STAFF
+RESSOURCE_DIFFUSION "1,1" -- "0,n" RESSOURCE_NUMERIQUE
+RESSOURCE_DIFFUSION "0,1" -- "0,n" NIVEAU
+RESSOURCE_DIFFUSION "0,1" -- "0,n" CLASSE
+RESSOURCE_DIFFUSION "1,1" -- "0,n" STAFF
+RESSOURCE_DIFFUSION "0,1" -- "0,n" EVALUATION
+CONSULTATION_RESSOURCE "1,1" -- "0,n" RESSOURCE_NUMERIQUE
+CONSULTATION_RESSOURCE "1,1" -- "0,n" UTILISATEUR
+RENDU_TRAVAIL "1,1" -- "0,n" RESSOURCE_DIFFUSION
+RENDU_TRAVAIL "1,1" -- "0,n" INSCRIPTION
+RENDU_TRAVAIL "0,1" -- "0,n" STAFF
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" ETABLISSEMENT
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" FOURNISSEUR_PAIEMENT
+FOURNISSEUR_PAIEMENT "0,n" -- "0,n" PAYS : DESSERVIR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONFIG_PAIEMENT_ETABLISSEMENT
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" UTILISATEUR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" PAYS
+TRANSACTION_EN_LIGNE "0,n" -- "0,n" CREANCE : CIBLER
+NOTIFICATION_FOURNISSEUR "1,1" -- "0,n" FOURNISSEUR_PAIEMENT
+NOTIFICATION_FOURNISSEUR "0,1" -- "0,n" TRANSACTION_EN_LIGNE
+PAIEMENT "0,1" -- "0,1" TRANSACTION_EN_LIGNE
+MODE_PAIEMENT "0,1" -- "0,n" FOURNISSEUR_PAIEMENT
+ELEVE "0,1" -- "0,n" FAMILLE
+FAMILLE "1,1" -- "0,n" ETABLISSEMENT
+FAMILLE "0,1" -- "0,n" PARENT
+REGLE_REDUCTION "1,1" -- "0,n" ANNEE_SCOLAIRE
+REGLE_REDUCTION "0,1" -- "0,n" FRAIS_SCOLAIRE
+CREANCE "0,1" -- "0,n" REGLE_REDUCTION
+CONTRAT_PLATEFORME "1,1" -- "0,n" ETABLISSEMENT
+FACTURE_COMMISSION "1,1" -- "0,n" ETABLISSEMENT
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONTRAT_PLATEFORME
+TRANSACTION_EN_LIGNE "0,1" -- "0,n" FACTURE_COMMISSION
+APPAREIL_CONFIANCE "1,1" -- "0,n" UTILISATEUR
+SESSION_UTILISATEUR "1,1" -- "0,n" UTILISATEUR
+SESSION_UTILISATEUR "0,1" -- "0,n" APPAREIL_CONFIANCE
+SESSION_UTILISATEUR "0,1" -- "0,n" ETABLISSEMENT
+CODE_VERIFICATION "1,1" -- "0,n" UTILISATEUR
+CARTE_ELEVE "1,1" -- "0,n" ELEVE
+CARTE_ELEVE "1,1" -- "0,n" INSCRIPTION
+CARTE_ELEVE "0,1" -- "0,1" DOCUMENT
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_01_noyau
+title MCD - 1 - Noyau, comptes et permissions
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "ETABLISSEMENT" as ETABLISSEMENT {
+  <u>id_etablissement</u>
+  --
+  code
+  nom
+  type_etablissement
+  adresse
+  ville
+  pays
+  telephone
+  email
+  logo
+  devise
+  est_actif
+  date_creation
+}
+class "UTILISATEUR" as UTILISATEUR {
+  <u>id_utilisateur</u>
+  --
+  email
+  mot_de_passe_hash
+  nom
+  prenom
+  telephone
+  photo
+  est_admin_systeme
+  statut_compte
+  derniere_connexion
+  tentatives_echec
+  verrouille_jusqu_a
+  date_changement_mdp
+  identifiant
+  telephone_verifie_le
+  email_verifie_le
+  doit_changer_mdp
+  type_secret
+  methode_2fa
+  reference_secret_2fa
+  canal_notification_prefere
+  date_anonymisation
+  date_creation
+}
+class "STAFF" as STAFF {
+  <u>id_staff</u>
+  --
+  type_staff
+  matricule
+  fonction
+  specialite
+  date_embauche
+  date_fin
+  statut
+  date_creation
+}
+class "DOMAINE" as DOMAINE {
+  <u>id_domaine</u>
+  --
+  code
+  libelle
+  description
+}
+class "TYPE_ACTION" as TYPE_ACTION {
+  <u>id_type_action</u>
+  --
+  code
+  libelle
+  categorie
+}
+class "PERMISSION" as PERMISSION {
+  <u>id_permission</u>
+  --
+  code
+  libelle
+  ressource
+  description
+}
+class "ATTRIBUTION_PERMISSION" as ATTRIBUTION_PERMISSION {
+  <u>id_attribution_permission</u>
+  --
+  date_attribution
+  date_expiration
+  est_active
+}
+class "ROLE" as ROLE {
+  <u>id_role</u>
+  --
+  code
+  libelle
+  description
+  est_actif
+}
+class "ATTRIBUTION_ROLE" as ATTRIBUTION_ROLE {
+  <u>id_attribution_role</u>
+  --
+  date_attribution
+  date_expiration
+  est_active
+}
+STAFF "1,1" -- "0,n" UTILISATEUR : UTILISER_COMPTE
+STAFF "1,1" -- "0,n" ETABLISSEMENT : TRAVAILLER_DANS
+STAFF "0,1" -- "0,n" STAFF : ETRE_CREE_PAR
+PERMISSION "1,1" -- "0,n" DOMAINE : CONCERNER_DOMAINE
+PERMISSION "1,1" -- "0,n" TYPE_ACTION : AUTORISER_ACTION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF : RECEVOIR_PERMISSION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" PERMISSION : PORTER_SUR_PERMISSION
+ATTRIBUTION_PERMISSION "1,1" -- "0,n" STAFF : ETRE_ACCORDEE_PAR
+ROLE "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+ROLE "0,n" -- "0,n" PERMISSION : COMPOSER
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF : RECEVOIR_ROLE
+ATTRIBUTION_ROLE "1,1" -- "0,n" ROLE : PORTER_SUR_ROLE
+ATTRIBUTION_ROLE "1,1" -- "0,n" STAFF : ETRE_ATTRIBUE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_02_academique
+title MCD - 2 - Structure academique et emploi du temps
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE {
+  <u>id_annee_scolaire</u>
+  --
+  libelle
+  date_debut
+  date_fin
+  statut
+}
+class "PERIODE" as PERIODE {
+  <u>id_periode</u>
+  --
+  libelle
+  numero
+  date_debut
+  date_fin
+  statut
+}
+class "NIVEAU" as NIVEAU {
+  <u>id_niveau</u>
+  --
+  code
+  libelle
+  cycle
+  ordre
+}
+class "CLASSE" as CLASSE {
+  <u>id_classe</u>
+  --
+  nom
+  effectif_max
+  statut
+}
+class "MATIERE" as MATIERE {
+  <u>id_matiere</u>
+  --
+  code
+  libelle
+  description
+  est_active
+}
+class "ENSEIGNEMENT" as ENSEIGNEMENT {
+  <u>id_enseignement</u>
+  --
+  coefficient
+  volume_horaire_hebdo
+  date_debut
+  date_fin
+  statut
+}
+class "CRENEAU" as CRENEAU {
+  <u>id_creneau</u>
+  --
+  jour_semaine
+  heure_debut
+  heure_fin
+  date_debut
+  date_fin
+}
+class "AFFECTATION_ENSEIGNANT" as AFFECTATION_ENSEIGNANT {
+  <u>id_affectation_enseignant</u>
+  --
+  type_affectation
+  date_debut
+  date_fin
+  motif
+}
+class "SALLE" as SALLE {
+  <u>id_salle</u>
+  --
+  code
+  libelle
+  capacite
+  est_active
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+ANNEE_SCOLAIRE "1,1" -- "0,n" ETABLISSEMENT : RELEVER_DE
+PERIODE "1,1" -- "1,n" ANNEE_SCOLAIRE : FAIRE_PARTIE_DE
+NIVEAU "1,1" -- "0,n" ETABLISSEMENT : ETRE_DEFINI_PAR
+CLASSE "1,1" -- "0,n" ANNEE_SCOLAIRE : ETRE_OUVERTE_EN
+CLASSE "1,1" -- "0,n" NIVEAU : ETRE_DE_NIVEAU
+CLASSE "0,1" -- "0,n" STAFF : AVOIR_TITULAIRE
+MATIERE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENSEIGNEE_DANS
+ENSEIGNEMENT "1,1" -- "0,n" CLASSE : ETRE_DISPENSE_EN
+ENSEIGNEMENT "1,1" -- "0,n" MATIERE : PORTER_SUR_MATIERE
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" ENSEIGNEMENT : CONCERNER_ENSEIGNEMENT
+AFFECTATION_ENSEIGNANT "1,1" -- "0,n" STAFF : ETRE_AFFECTE
+CRENEAU "1,1" -- "0,n" ENSEIGNEMENT : PLANIFIER_POUR
+SALLE "1,1" -- "0,n" ETABLISSEMENT : APPARTENIR_A
+CLASSE "0,1" -- "0,n" SALLE : OCCUPER
+CRENEAU "0,1" -- "0,n" SALLE : SE_DEROULER_DANS
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_03_scolarite
+title MCD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "PARENT" as PARENT {
+  <u>id_parent</u>
+  --
+  profession
+  employeur
+  adresse
+  telephone_secondaire
+  date_creation
+}
+class "ELEVE" as ELEVE {
+  <u>id_eleve</u>
+  --
+  matricule
+  nom
+  prenom
+  sexe
+  date_naissance
+  lieu_naissance
+  nationalite
+  adresse
+  photo
+  consentement_photo
+  date_consentement_photo
+  statut
+  date_anonymisation
+  date_creation
+}
+class "INSCRIPTION" as INSCRIPTION {
+  <u>id_inscription</u>
+  --
+  date_inscription
+  type_inscription
+  statut
+  date_validation
+  observation
+}
+class "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  <u>id_type_document</u>
+  --
+  code
+  libelle
+  genere_automatiquement
+}
+class "DOCUMENT" as DOCUMENT {
+  <u>id_document</u>
+  --
+  titre
+  fichier
+  date_document
+  visible_parent
+  visible_eleve
+  statut
+  date_creation
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "CLASSE" as CLASSE <<externe>> {
+  <u>id_classe</u>
+}
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  <u>id_annee_scolaire</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "FAMILLE" as FAMILLE {
+  <u>id_famille</u>
+  --
+  nom
+  date_creation
+}
+ELEVE "0,1" -- "0,n" FAMILLE : APPARTENIR_A_FAMILLE
+FAMILLE "1,1" -- "0,n" ETABLISSEMENT : REGROUPER_DANS
+FAMILLE "0,1" -- "0,n" PARENT : AVOIR_POUR_REFERENT
+PARENT "1,1" -- "0,1" UTILISATEUR : UTILISER_COMPTE
+ELEVE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENREGISTRE_DANS
+ELEVE "0,1" -- "0,n" UTILISATEUR : DISPOSER_COMPTE
+ELEVE "1,n" -- "0,n" PARENT : LIEN_PARENTE
+class "LIEN_PARENTE" as LIEN_PARENTE <<ASSOCIATION>> {
+  type_lien
+  est_responsable_legal
+  est_responsable_financier
+  est_contact_urgence
+  peut_consulter
+  date_debut
+  date_fin
+}
+(ELEVE, PARENT) .. LIEN_PARENTE
+INSCRIPTION "1,1" -- "0,n" ELEVE : S_INSCRIRE
+INSCRIPTION "1,1" -- "0,n" CLASSE : ETRE_AFFECTE_A
+INSCRIPTION "1,1" -- "0,n" ANNEE_SCOLAIRE : COUVRIR_ANNEE
+INSCRIPTION "1,1" -- "0,n" STAFF : ETRE_ENREGISTREE_PAR
+INSCRIPTION "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+DOCUMENT "1,1" -- "0,n" ELEVE : CONCERNER_ELEVE
+TYPE_DOCUMENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+DOCUMENT "1,1" -- "0,n" TYPE_DOCUMENT : ETRE_DE_TYPE
+DOCUMENT "0,1" -- "0,n" STAFF : ETRE_PRODUIT_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_04_evaluation
+title MCD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "TYPE_EVALUATION" as TYPE_EVALUATION {
+  <u>id_type_evaluation</u>
+  --
+  code
+  libelle
+  coefficient_defaut
+}
+class "EVALUATION" as EVALUATION {
+  <u>id_evaluation</u>
+  --
+  titre
+  date_evaluation
+  note_maximale
+  coefficient
+  statut
+  date_validation
+  date_creation
+}
+class "NOTE" as NOTE {
+  <u>id_note</u>
+  --
+  valeur
+  statut_note
+  observation
+  date_saisie
+  date_modification
+}
+class "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  <u>id_historique_note</u>
+  --
+  type_operation
+  ancienne_valeur
+  nouvelle_valeur
+  motif
+  date_modification
+}
+class "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  <u>id_resultat_matiere</u>
+  --
+  moyenne
+  rang
+  appreciation
+  statut
+  date_calcul
+}
+class "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  <u>id_resultat_periode</u>
+  --
+  moyenne_generale
+  rang
+  mention
+  appreciation_generale
+  statut
+  date_validation
+}
+class "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  <u>id_resultat_annuel</u>
+  --
+  moyenne_annuelle
+  rang
+  decision
+  appreciation
+  statut
+  date_deliberation
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "ENSEIGNEMENT" as ENSEIGNEMENT <<externe>> {
+  <u>id_enseignement</u>
+}
+class "PERIODE" as PERIODE <<externe>> {
+  <u>id_periode</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+EVALUATION "1,1" -- "0,n" ENSEIGNEMENT : EVALUER_DANS
+EVALUATION "1,1" -- "0,n" PERIODE : SE_DEROULER_EN
+TYPE_EVALUATION "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+EVALUATION "1,1" -- "0,n" TYPE_EVALUATION : ETRE_DE_TYPE
+EVALUATION "1,1" -- "0,n" STAFF : ETRE_CREEE_PAR
+EVALUATION "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+NOTE "1,1" -- "0,n" EVALUATION : PORTER_SUR_EVALUATION
+NOTE "1,1" -- "0,n" INSCRIPTION : ETRE_OBTENUE_PAR
+NOTE "1,1" -- "0,n" STAFF : ETRE_SAISIE_PAR
+HISTORIQUE_NOTE "1,1" -- "0,n" NOTE : TRACER_MODIFICATION
+HISTORIQUE_NOTE "1,1" -- "0,n" STAFF : ETRE_MODIFIEE_PAR
+RESULTAT_MATIERE "1,1" -- "0,n" INSCRIPTION : OBTENIR_RESULTAT
+RESULTAT_MATIERE "1,1" -- "0,n" ENSEIGNEMENT : PORTER_SUR_ENSEIGNEMENT
+RESULTAT_MATIERE "1,1" -- "0,n" PERIODE : ETRE_CALCULE_POUR
+RESULTAT_PERIODE "1,1" -- "0,n" INSCRIPTION : OBTENIR_BILAN
+RESULTAT_PERIODE "1,1" -- "0,n" PERIODE : ETRE_ETABLI_POUR
+RESULTAT_PERIODE "0,1" -- "0,n" STAFF : ETRE_VALIDE_PAR
+class "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  <u>id_derogation_acces_resultat</u>
+  --
+  motif
+  date_accord
+  date_fin_validite
+  est_active
+}
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" INSCRIPTION : CONCERNER_INSCRIPTION
+DEROGATION_ACCES_RESULTAT "0,1" -- "0,n" PERIODE : PORTER_SUR_PERIODE
+DEROGATION_ACCES_RESULTAT "1,1" -- "0,n" STAFF : ETRE_ACCORDEE_PAR
+RESULTAT_ANNUEL "1,1" -- "0,1" INSCRIPTION : CONCLURE_ANNEE
+RESULTAT_ANNUEL "0,1" -- "0,n" NIVEAU : ORIENTER_VERS
+RESULTAT_ANNUEL "0,1" -- "0,n" STAFF : ETRE_DELIBERE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_05_surveillance
+title MCD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "PRESENCE" as PRESENCE {
+  <u>id_presence</u>
+  --
+  date_presence
+  statut
+  minutes_retard
+  est_justifiee
+  motif
+  date_enregistrement
+}
+class "TYPE_INCIDENT" as TYPE_INCIDENT {
+  <u>id_type_incident</u>
+  --
+  code
+  libelle
+  gravite_defaut
+}
+class "INCIDENT" as INCIDENT {
+  <u>id_incident</u>
+  --
+  date_incident
+  lieu
+  description
+  gravite
+  statut
+  date_creation
+}
+class "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  <u>id_observation_incident</u>
+  --
+  contenu
+  date_observation
+}
+class "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  <u>id_decision_disciplinaire</u>
+  --
+  type_sanction
+  description
+  date_decision
+  date_debut
+  date_fin
+  statut
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "CRENEAU" as CRENEAU <<externe>> {
+  <u>id_creneau</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+PRESENCE "1,1" -- "0,n" INSCRIPTION : CONCERNER_ELEVE_INSCRIT
+PRESENCE "0,1" -- "0,n" CRENEAU : SE_TENIR_PENDANT
+PRESENCE "1,1" -- "0,n" STAFF : ETRE_ENREGISTREE_PAR
+INCIDENT "1,1" -- "0,n" INSCRIPTION : IMPLIQUER_ELEVE
+TYPE_INCIDENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+INCIDENT "1,1" -- "0,n" TYPE_INCIDENT : ETRE_DE_TYPE
+INCIDENT "1,1" -- "0,n" STAFF : ETRE_SIGNALE_PAR
+INCIDENT "0,1" -- "0,n" STAFF : ETRE_EXAMINE_PAR
+OBSERVATION_INCIDENT "1,1" -- "0,n" INCIDENT : ETRE_ANNOTE_PAR
+OBSERVATION_INCIDENT "1,1" -- "0,n" STAFF : ETRE_REDIGEE_PAR
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" INCIDENT : ABOUTIR_A
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" STAFF : ETRE_DECIDEE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_06_finance
+title MCD - 6 - Finance : frais, paiements, recus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "FRAIS_SCOLAIRE" as FRAIS_SCOLAIRE {
+  <u>id_frais_scolaire</u>
+  --
+  code
+  libelle
+  montant
+  obligatoire
+  periodicite
+  est_actif
+}
+class "ECHEANCE" as ECHEANCE {
+  <u>id_echeance</u>
+  --
+  libelle
+  date_limite
+  montant
+  mois_concerne
+}
+class "CREANCE" as CREANCE {
+  <u>id_creance</u>
+  --
+  montant_du
+  remise
+  remise_reduction
+  motif_remise
+  statut
+  date_creation
+}
+class "MODE_PAIEMENT" as MODE_PAIEMENT {
+  <u>id_mode_paiement</u>
+  --
+  code
+  libelle
+  est_actif
+}
+class "PAIEMENT" as PAIEMENT {
+  <u>id_paiement</u>
+  --
+  numero
+  montant
+  date_paiement
+  canal
+  reference_externe
+  nom_payeur
+  telephone_payeur
+  statut
+  date_validation
+  observation
+}
+class "RECU" as RECU {
+  <u>id_recu</u>
+  --
+  numero
+  nom_payeur
+  montant
+  devise
+  detail
+  code_verification
+  date_emission
+  fichier
+  statut
+}
+class "ANNULATION_PAIEMENT" as ANNULATION_PAIEMENT {
+  <u>id_annulation_paiement</u>
+  --
+  motif
+  statut
+  date_demande
+  date_decision
+}
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  <u>id_annee_scolaire</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "PERIODE" as PERIODE <<externe>> {
+  <u>id_periode</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "PARENT" as PARENT <<externe>> {
+  <u>id_parent</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE <<externe>> {
+  <u>id_transaction_en_ligne</u>
+}
+class "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT <<externe>> {
+  <u>id_fournisseur_paiement</u>
+}
+class "REGLE_REDUCTION" as REGLE_REDUCTION {
+  <u>id_regle_reduction</u>
+  --
+  libelle
+  type_reduction
+  rang_enfant_min
+  mode_calcul
+  valeur
+  est_active
+}
+REGLE_REDUCTION "1,1" -- "0,n" ANNEE_SCOLAIRE : S_APPLIQUER_EN
+REGLE_REDUCTION "0,1" -- "0,n" FRAIS_SCOLAIRE : PORTER_SUR_FRAIS
+CREANCE "0,1" -- "0,n" REGLE_REDUCTION : BENEFICIER_DE
+FRAIS_SCOLAIRE "1,1" -- "0,n" ANNEE_SCOLAIRE : ETRE_APPLICABLE_EN
+FRAIS_SCOLAIRE "0,1" -- "0,n" NIVEAU : VISER_NIVEAU
+ECHEANCE "1,1" -- "0,n" FRAIS_SCOLAIRE : ETRE_ECHELONNE_EN
+ECHEANCE "0,1" -- "0,n" PERIODE : TOMBER_EN
+CREANCE "1,1" -- "0,n" INSCRIPTION : DEVOIR_PAR
+CREANCE "1,1" -- "0,n" ECHEANCE : PORTER_SUR_ECHEANCE
+CREANCE "0,1" -- "0,n" STAFF : ETRE_REMISE_PAR
+PAIEMENT "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENCAISSE_PAR
+MODE_PAIEMENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+PAIEMENT "1,1" -- "0,n" MODE_PAIEMENT : UTILISER_MODE
+PAIEMENT "0,1" -- "0,n" PARENT : ETRE_VERSE_PAR
+PAIEMENT "0,1" -- "0,n" STAFF : ETRE_ENREGISTRE_PAR
+PAIEMENT "0,1" -- "0,n" STAFF : ETRE_VALIDE_PAR
+PAIEMENT "0,1" -- "0,1" TRANSACTION_EN_LIGNE : RESULTER_DE
+MODE_PAIEMENT "0,1" -- "0,n" FOURNISSEUR_PAIEMENT : CORRESPONDRE_A
+PAIEMENT "0,n" -- "0,n" CREANCE : REPARTIR
+class "REPARTIR" as REPARTIR <<ASSOCIATION>> {
+  montant_alloue
+  date_allocation
+}
+(PAIEMENT, CREANCE) .. REPARTIR
+RECU "1,1" -- "0,n" PAIEMENT : JUSTIFIER_PAR
+RECU "0,1" -- "0,n" STAFF : ETRE_EMIS_PAR
+RECU "1,1" -- "0,n" ETABLISSEMENT : ETRE_NUMEROTE_DANS
+ANNULATION_PAIEMENT "1,1" -- "0,n" PAIEMENT : VISER_PAIEMENT
+ANNULATION_PAIEMENT "1,1" -- "0,n" STAFF : ETRE_DEMANDEE_PAR
+ANNULATION_PAIEMENT "0,1" -- "0,n" STAFF : ETRE_APPROUVEE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_07_transversal
+title MCD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "NOTIFICATION" as NOTIFICATION {
+  <u>id_notification</u>
+  --
+  type_notification
+  titre
+  message
+  priorite
+  entite_type
+  entite_id
+  est_lue
+  date_lecture
+  date_creation
+}
+class "DEMANDE" as DEMANDE {
+  <u>id_demande</u>
+  --
+  type_demande
+  objet
+  description
+  statut
+  reponse
+  date_demande
+  date_traitement
+}
+class "RAPPORT" as RAPPORT {
+  <u>id_rapport</u>
+  --
+  titre
+  type_rapport
+  periode_debut
+  periode_fin
+  parametres
+  format_fichier
+  fichier
+  date_generation
+}
+class "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  <u>id_journal_audit</u>
+  --
+  type_operation
+  entite_type
+  entite_id
+  anciennes_valeurs
+  nouvelles_valeurs
+  adresse_ip
+  date_action
+}
+class "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  <u>id_parametre_systeme</u>
+  --
+  cle
+  valeur
+  description
+  date_modification
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "ELEVE" as ELEVE <<externe>> {
+  <u>id_eleve</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "DOMAINE" as DOMAINE <<externe>> {
+  <u>id_domaine</u>
+}
+class "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  <u>id_envoi_notification</u>
+  --
+  canal
+  destination
+  fournisseur_envoi
+  reference_fournisseur
+  statut
+  tentatives
+  cout
+  devise
+  code_erreur
+  date_creation
+  date_envoi
+  date_distribution
+}
+ENVOI_NOTIFICATION "1,1" -- "0,n" NOTIFICATION : DIFFUSER_NOTIFICATION
+ENVOI_NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT : ETRE_FACTURE_A
+NOTIFICATION "1,1" -- "0,n" UTILISATEUR : ETRE_ADRESSEE_A
+NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT : EMANER_DE
+DEMANDE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ADRESSEE_A
+DEMANDE "1,1" -- "0,n" UTILISATEUR : ETRE_EMISE_PAR
+DEMANDE "0,1" -- "0,n" ELEVE : CONCERNER_ELEVE
+DEMANDE "0,1" -- "0,n" STAFF : ETRE_TRAITEE_PAR
+RAPPORT "1,1" -- "0,n" ETABLISSEMENT : ETRE_PRODUIT_POUR
+RAPPORT "0,1" -- "0,n" DOMAINE : RELEVER_DU_DOMAINE
+RAPPORT "1,1" -- "0,n" UTILISATEUR : ETRE_GENERE_PAR
+JOURNAL_AUDIT "0,1" -- "0,n" UTILISATEUR : ETRE_EFFECTUE_PAR
+JOURNAL_AUDIT "0,1" -- "0,n" ETABLISSEMENT : SE_PRODUIRE_DANS
+PARAMETRE_SYSTEME "0,1" -- "0,n" ETABLISSEMENT : CONFIGURER
+PARAMETRE_SYSTEME "0,1" -- "0,n" UTILISATEUR : ETRE_MODIFIE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_08_bibliotheque
+title MCD - 8 - Bibliotheque numerique : ressources, diffusions, rendus
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "CATEGORIE_RESSOURCE" as CATEGORIE_RESSOURCE {
+  <u>id_categorie_ressource</u>
+  --
+  code
+  libelle
+  description
+  est_active
+}
+class "RESSOURCE_NUMERIQUE" as RESSOURCE_NUMERIQUE {
+  <u>id_ressource_numerique</u>
+  --
+  titre
+  auteur
+  editeur
+  annee_publication
+  isbn
+  description
+  type_ressource
+  fichier
+  url
+  format
+  langue
+  licence
+  statut
+  date_ajout
+  date_publication
+}
+class "RESSOURCE_DIFFUSION" as RESSOURCE_DIFFUSION {
+  <u>id_ressource_diffusion</u>
+  --
+  date_debut
+  date_fin
+  rendu_attendu
+  date_limite_rendu
+  date_creation
+}
+class "CONSULTATION_RESSOURCE" as CONSULTATION_RESSOURCE {
+  <u>id_consultation_ressource</u>
+  --
+  type_consultation
+  date_consultation
+}
+class "RENDU_TRAVAIL" as RENDU_TRAVAIL {
+  <u>id_rendu_travail</u>
+  --
+  fichier
+  commentaire_eleve
+  date_rendu
+  statut
+  commentaire_correction
+  date_correction
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "MATIERE" as MATIERE <<externe>> {
+  <u>id_matiere</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "NIVEAU" as NIVEAU <<externe>> {
+  <u>id_niveau</u>
+}
+class "CLASSE" as CLASSE <<externe>> {
+  <u>id_classe</u>
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "EVALUATION" as EVALUATION <<externe>> {
+  <u>id_evaluation</u>
+}
+CATEGORIE_RESSOURCE "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" ETABLISSEMENT : APPARTENIR_A
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" CATEGORIE_RESSOURCE : ETRE_CLASSEE_DANS
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" MATIERE : CONCERNER_MATIERE
+RESSOURCE_NUMERIQUE "1,1" -- "0,n" STAFF : ETRE_AJOUTEE_PAR
+RESSOURCE_NUMERIQUE "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+RESSOURCE_DIFFUSION "1,1" -- "0,n" RESSOURCE_NUMERIQUE : DIFFUSER
+RESSOURCE_DIFFUSION "0,1" -- "0,n" NIVEAU : VISER_NIVEAU
+RESSOURCE_DIFFUSION "0,1" -- "0,n" CLASSE : VISER_CLASSE
+RESSOURCE_DIFFUSION "1,1" -- "0,n" STAFF : ETRE_DIFFUSEE_PAR
+RESSOURCE_DIFFUSION "0,1" -- "0,n" EVALUATION : COMPTER_POUR
+CONSULTATION_RESSOURCE "1,1" -- "0,n" RESSOURCE_NUMERIQUE : PORTER_SUR
+CONSULTATION_RESSOURCE "1,1" -- "0,n" UTILISATEUR : ETRE_CONSULTEE_PAR
+RENDU_TRAVAIL "1,1" -- "0,n" RESSOURCE_DIFFUSION : REPONDRE_A
+RENDU_TRAVAIL "1,1" -- "0,n" INSCRIPTION : ETRE_RENDU_PAR
+RENDU_TRAVAIL "0,1" -- "0,n" STAFF : ETRE_CORRIGE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_09_paiement_en_ligne
+title MCD - 9 - Finance : paiement en ligne (Mobile Money, agregateurs)
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "FOURNISSEUR_PAIEMENT" as FOURNISSEUR_PAIEMENT {
+  <u>id_fournisseur_paiement</u>
+  --
+  code
+  libelle
+  type_fournisseur
+  supporte_partage
+  est_actif
+}
+class "PAYS" as PAYS {
+  <u>id_pays</u>
+  --
+  code_iso
+  nom
+  indicatif_telephonique
+  devise
+}
+class "CONFIG_PAIEMENT_ETABLISSEMENT" as CONFIG_PAIEMENT_ETABLISSEMENT {
+  <u>id_config_paiement_etablissement</u>
+  --
+  identifiant_marchand
+  reference_secret
+  environnement
+  frais_a_charge
+  est_actif
+  date_creation
+}
+class "TRANSACTION_EN_LIGNE" as TRANSACTION_EN_LIGNE {
+  <u>id_transaction_en_ligne</u>
+  --
+  numero_telephone
+  reference_interne
+  reference_fournisseur
+  montant
+  frais_operateur
+  taux_commission
+  montant_commission
+  mode_perception_commission
+  montant_total
+  devise
+  taux_change
+  statut
+  code_erreur
+  message_erreur
+  date_initiation
+  date_expiration
+  date_confirmation
+}
+class "NOTIFICATION_FOURNISSEUR" as NOTIFICATION_FOURNISSEUR {
+  <u>id_notification_fournisseur</u>
+  --
+  reference_fournisseur
+  contenu_brut
+  signature_valide
+  adresse_ip
+  statut_traitement
+  date_reception
+  date_traitement
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "CREANCE" as CREANCE <<externe>> {
+  <u>id_creance</u>
+}
+class "CONTRAT_PLATEFORME" as CONTRAT_PLATEFORME {
+  <u>id_contrat_plateforme</u>
+  --
+  reference_contrat
+  taux_commission
+  commission_a_charge
+  date_debut
+  date_fin
+  statut
+}
+class "FACTURE_COMMISSION" as FACTURE_COMMISSION {
+  <u>id_facture_commission</u>
+  --
+  numero
+  mois
+  montant_total
+  devise
+  statut
+  date_emission
+  date_echeance
+  date_paiement
+  fichier
+}
+CONTRAT_PLATEFORME "1,1" -- "0,n" ETABLISSEMENT : LIER_A
+FACTURE_COMMISSION "1,1" -- "0,n" ETABLISSEMENT : ETRE_FACTUREE_A
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONTRAT_PLATEFORME : RELEVER_DU_CONTRAT
+TRANSACTION_EN_LIGNE "0,1" -- "0,n" FACTURE_COMMISSION : ETRE_INCLUSE_DANS
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" ETABLISSEMENT : CONFIGURER_ENCAISSEMENT
+CONFIG_PAIEMENT_ETABLISSEMENT "1,1" -- "0,n" FOURNISSEUR_PAIEMENT : UTILISER_FOURNISSEUR
+FOURNISSEUR_PAIEMENT "0,n" -- "0,n" PAYS : DESSERVIR
+class "DESSERVIR" as DESSERVIR <<ASSOCIATION>> {
+  prefixes_numero
+  est_actif
+}
+(FOURNISSEUR_PAIEMENT, PAYS) .. DESSERVIR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" CONFIG_PAIEMENT_ETABLISSEMENT : PASSER_PAR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" UTILISATEUR : ETRE_INITIEE_PAR
+TRANSACTION_EN_LIGNE "1,1" -- "0,n" PAYS : PROVENIR_DE
+TRANSACTION_EN_LIGNE "0,n" -- "0,n" CREANCE : CIBLER
+class "CIBLER" as CIBLER <<ASSOCIATION>> {
+  montant
+}
+(TRANSACTION_EN_LIGNE, CREANCE) .. CIBLER
+NOTIFICATION_FOURNISSEUR "1,1" -- "0,n" FOURNISSEUR_PAIEMENT : EMANER_DU_FOURNISSEUR
+NOTIFICATION_FOURNISSEUR "0,1" -- "0,n" TRANSACTION_EN_LIGNE : CONCERNER_TRANSACTION
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
+@startuml MCD_10_authentification
+title MCD - 10 - Authentification, sessions et carte eleve
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "APPAREIL_CONFIANCE" as APPAREIL_CONFIANCE {
+  <u>id_appareil_confiance</u>
+  --
+  empreinte_appareil
+  nom_appareil
+  date_ajout
+  derniere_utilisation
+  date_expiration
+  date_revocation
+}
+class "SESSION_UTILISATEUR" as SESSION_UTILISATEUR {
+  <u>id_session_utilisateur</u>
+  --
+  role_actif
+  empreinte_jeton
+  adresse_ip
+  agent_utilisateur
+  date_creation
+  date_expiration
+  derniere_activite
+  date_revocation
+}
+class "CODE_VERIFICATION" as CODE_VERIFICATION {
+  <u>id_code_verification</u>
+  --
+  canal
+  objet
+  destination
+  empreinte_code
+  tentatives
+  date_creation
+  date_expiration
+  date_utilisation
+}
+class "CARTE_ELEVE" as CARTE_ELEVE {
+  <u>id_carte_eleve</u>
+  --
+  numero_carte
+  empreinte_jeton_qr
+  date_emission
+  date_expiration
+  statut
+  fichier
+  motif_revocation
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "ELEVE" as ELEVE <<externe>> {
+  <u>id_eleve</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "DOCUMENT" as DOCUMENT <<externe>> {
+  <u>id_document</u>
+}
+APPAREIL_CONFIANCE "1,1" -- "0,n" UTILISATEUR : APPARTENIR_A_UTILISATEUR
+SESSION_UTILISATEUR "1,1" -- "0,n" UTILISATEUR : OUVRIR_SESSION
+SESSION_UTILISATEUR "0,1" -- "0,n" APPAREIL_CONFIANCE : PROVENIR_DE_APPAREIL
+SESSION_UTILISATEUR "0,1" -- "0,n" ETABLISSEMENT : AVOIR_POUR_CONTEXTE
+CODE_VERIFICATION "1,1" -- "0,n" UTILISATEUR : ETRE_ENVOYE_A
+CARTE_ELEVE "1,1" -- "0,n" ELEVE : IDENTIFIER_ELEVE
+CARTE_ELEVE "1,1" -- "0,n" INSCRIPTION : VALOIR_POUR
+CARTE_ELEVE "0,1" -- "0,1" DOCUMENT : ETRE_ARCHIVEE_DANS
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

@@ -1,0 +1,140 @@
+@startuml MCD_07_transversal
+title MCD - 7 - Transversal : notifications, demandes, rapports, audit
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "NOTIFICATION" as NOTIFICATION {
+  <u>id_notification</u>
+  --
+  type_notification
+  titre
+  message
+  priorite
+  entite_type
+  entite_id
+  est_lue
+  date_lecture
+  date_creation
+}
+class "DEMANDE" as DEMANDE {
+  <u>id_demande</u>
+  --
+  type_demande
+  objet
+  description
+  statut
+  reponse
+  date_demande
+  date_traitement
+}
+class "RAPPORT" as RAPPORT {
+  <u>id_rapport</u>
+  --
+  titre
+  type_rapport
+  periode_debut
+  periode_fin
+  parametres
+  format_fichier
+  fichier
+  date_generation
+}
+class "JOURNAL_AUDIT" as JOURNAL_AUDIT {
+  <u>id_journal_audit</u>
+  --
+  type_operation
+  entite_type
+  entite_id
+  anciennes_valeurs
+  nouvelles_valeurs
+  adresse_ip
+  date_action
+}
+class "PARAMETRE_SYSTEME" as PARAMETRE_SYSTEME {
+  <u>id_parametre_systeme</u>
+  --
+  cle
+  valeur
+  description
+  date_modification
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "ELEVE" as ELEVE <<externe>> {
+  <u>id_eleve</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "DOMAINE" as DOMAINE <<externe>> {
+  <u>id_domaine</u>
+}
+class "ENVOI_NOTIFICATION" as ENVOI_NOTIFICATION {
+  <u>id_envoi_notification</u>
+  --
+  canal
+  destination
+  fournisseur_envoi
+  reference_fournisseur
+  statut
+  tentatives
+  cout
+  devise
+  code_erreur
+  date_creation
+  date_envoi
+  date_distribution
+}
+ENVOI_NOTIFICATION "1,1" -- "0,n" NOTIFICATION : DIFFUSER_NOTIFICATION
+ENVOI_NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT : ETRE_FACTURE_A
+NOTIFICATION "1,1" -- "0,n" UTILISATEUR : ETRE_ADRESSEE_A
+NOTIFICATION "0,1" -- "0,n" ETABLISSEMENT : EMANER_DE
+DEMANDE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ADRESSEE_A
+DEMANDE "1,1" -- "0,n" UTILISATEUR : ETRE_EMISE_PAR
+DEMANDE "0,1" -- "0,n" ELEVE : CONCERNER_ELEVE
+DEMANDE "0,1" -- "0,n" STAFF : ETRE_TRAITEE_PAR
+RAPPORT "1,1" -- "0,n" ETABLISSEMENT : ETRE_PRODUIT_POUR
+RAPPORT "0,1" -- "0,n" DOMAINE : RELEVER_DU_DOMAINE
+RAPPORT "1,1" -- "0,n" UTILISATEUR : ETRE_GENERE_PAR
+JOURNAL_AUDIT "0,1" -- "0,n" UTILISATEUR : ETRE_EFFECTUE_PAR
+JOURNAL_AUDIT "0,1" -- "0,n" ETABLISSEMENT : SE_PRODUIRE_DANS
+PARAMETRE_SYSTEME "0,1" -- "0,n" ETABLISSEMENT : CONFIGURER
+PARAMETRE_SYSTEME "0,1" -- "0,n" UTILISATEUR : ETRE_MODIFIE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

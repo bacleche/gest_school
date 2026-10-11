@@ -1,0 +1,106 @@
+@startuml MCD_05_surveillance
+title MCD - 5 - Surveillance : presences, incidents, discipline
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "PRESENCE" as PRESENCE {
+  <u>id_presence</u>
+  --
+  date_presence
+  statut
+  minutes_retard
+  est_justifiee
+  motif
+  date_enregistrement
+}
+class "TYPE_INCIDENT" as TYPE_INCIDENT {
+  <u>id_type_incident</u>
+  --
+  code
+  libelle
+  gravite_defaut
+}
+class "INCIDENT" as INCIDENT {
+  <u>id_incident</u>
+  --
+  date_incident
+  lieu
+  description
+  gravite
+  statut
+  date_creation
+}
+class "OBSERVATION_INCIDENT" as OBSERVATION_INCIDENT {
+  <u>id_observation_incident</u>
+  --
+  contenu
+  date_observation
+}
+class "DECISION_DISCIPLINAIRE" as DECISION_DISCIPLINAIRE {
+  <u>id_decision_disciplinaire</u>
+  --
+  type_sanction
+  description
+  date_decision
+  date_debut
+  date_fin
+  statut
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "INSCRIPTION" as INSCRIPTION <<externe>> {
+  <u>id_inscription</u>
+}
+class "CRENEAU" as CRENEAU <<externe>> {
+  <u>id_creneau</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+PRESENCE "1,1" -- "0,n" INSCRIPTION : CONCERNER_ELEVE_INSCRIT
+PRESENCE "0,1" -- "0,n" CRENEAU : SE_TENIR_PENDANT
+PRESENCE "1,1" -- "0,n" STAFF : ETRE_ENREGISTREE_PAR
+INCIDENT "1,1" -- "0,n" INSCRIPTION : IMPLIQUER_ELEVE
+TYPE_INCIDENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+INCIDENT "1,1" -- "0,n" TYPE_INCIDENT : ETRE_DE_TYPE
+INCIDENT "1,1" -- "0,n" STAFF : ETRE_SIGNALE_PAR
+INCIDENT "0,1" -- "0,n" STAFF : ETRE_EXAMINE_PAR
+OBSERVATION_INCIDENT "1,1" -- "0,n" INCIDENT : ETRE_ANNOTE_PAR
+OBSERVATION_INCIDENT "1,1" -- "0,n" STAFF : ETRE_REDIGEE_PAR
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" INCIDENT : ABOUTIR_A
+DECISION_DISCIPLINAIRE "1,1" -- "0,n" STAFF : ETRE_DECIDEE_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml

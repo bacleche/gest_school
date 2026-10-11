@@ -1,0 +1,227 @@
+@startuml MLD_04_evaluation
+title MLD - 4 - Responsabilite pedagogique : evaluations et resultats
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 25
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide methods
+
+entity "TYPE_EVALUATION" as TYPE_EVALUATION {
+  * id_type_evaluation : BIGINT <<PK>>
+  --
+  id_etablissement : BIGINT <<FK>>
+  * code : VARCHAR(30)
+  * libelle : VARCHAR(100)
+  * coefficient_defaut : DECIMAL(4,2) DEFAULT 1
+  ..
+  UNIQUE (id_etablissement, code) WHERE id_etablissement IS NOT NULL
+  UNIQUE (code) WHERE id_etablissement IS NULL
+  NB : id_etablissement NULL = valeur commune a tous les etablissements
+  CHECK (valeur propre utilisable seulement par son etablissement (trigger))
+}
+entity "EVALUATION" as EVALUATION {
+  * id_evaluation : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  * id_type_evaluation : BIGINT <<FK>>
+  * id_staff_createur : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  * titre : VARCHAR(200)
+  * date_evaluation : DATE
+  * note_maximale : DECIMAL(5,2) DEFAULT 20
+  * coefficient : DECIMAL(4,2) DEFAULT 1
+  * statut : VARCHAR(20) IN (BROUILLON,SOUMISE,VALIDEE,VERROUILLEE) DEFAULT 'BROUILLON'
+  date_validation : TIMESTAMP
+  * date_creation : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  CHECK (periode de la meme annee scolaire que la classe de l'enseignement (trigger))
+  CHECK (date_evaluation comprise dans la periode (trigger))
+  FK composites (+ id_etablissement) : id_enseignement, id_periode, id_staff_createur, id_staff_validateur
+}
+entity "NOTE" as NOTE {
+  * id_note : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_evaluation : BIGINT <<FK>>
+  * id_inscription : BIGINT <<FK>>
+  * id_staff_saisie : BIGINT <<FK>>
+  valeur : DECIMAL(5,2)
+  * statut_note : VARCHAR(15) IN (NOTEE,ABSENT,ABSENT_JUSTIFIE,DISPENSE) DEFAULT 'NOTEE'
+  observation : VARCHAR(255)
+  * date_saisie : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_modification : TIMESTAMP
+  ..
+  UNIQUE (id_evaluation, id_inscription)
+  CHECK (valeur >= 0 ET valeur <= evaluation.note_maximale (trigger))
+  CHECK (inscription VALIDEE dans la classe de l'enseignement evalue (trigger))
+  CHECK ((statut_note = 'NOTEE') = (valeur IS NOT NULL))
+  NB : ABSENT_JUSTIFIE et DISPENSE exclus de la moyenne ; ABSENT selon NOTE_ABSENCE_INJUSTIFIEE (ZERO ou EXCLU)
+  CHECK (aucune modification si l'evaluation est VERROUILLEE (trigger))
+  NB : visible parent/eleve (RLS) seulement si l'evaluation est VALIDEE ou VERROUILLEE (jamais bloquee par les impayes)
+  FK composites (+ id_etablissement) : id_evaluation, id_inscription, id_staff_saisie
+}
+entity "HISTORIQUE_NOTE" as HISTORIQUE_NOTE {
+  * id_historique_note : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_note : BIGINT <<FK>>
+  * id_staff_modificateur : BIGINT <<FK>>
+  * type_operation : VARCHAR(20) IN (CREATION,MODIFICATION,ANNULATION)
+  ancienne_valeur : DECIMAL(5,2)
+  nouvelle_valeur : DECIMAL(5,2)
+  motif : VARCHAR(255)
+  * date_modification : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  NB : table en INSERT seul (UPDATE et DELETE revoques)
+  FK composites (+ id_etablissement) : id_note, id_staff_modificateur
+}
+entity "RESULTAT_MATIERE" as RESULTAT_MATIERE {
+  * id_resultat_matiere : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_enseignement : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  moyenne : DECIMAL(5,2)
+  rang : SMALLINT
+  appreciation : VARCHAR(255)
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE) DEFAULT 'PROVISOIRE'
+  * date_calcul : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_enseignement, id_periode)
+  CHECK (inscription dans la classe de l'enseignement, periode de l'annee de l'inscription (trigger))
+  NB : visible parent/eleve (RLS) seulement si le RESULTAT_PERIODE est PUBLIE et est_en_regle(inscription, periode)
+  FK composites (+ id_etablissement) : id_inscription, id_enseignement, id_periode
+}
+entity "RESULTAT_PERIODE" as RESULTAT_PERIODE {
+  * id_resultat_periode : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  * id_periode : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  moyenne_generale : DECIMAL(5,2)
+  rang : SMALLINT
+  mention : VARCHAR(30)
+  appreciation_generale : TEXT
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE,PUBLIE) DEFAULT 'PROVISOIRE'
+  date_validation : TIMESTAMP
+  ..
+  UNIQUE (id_inscription, id_periode)
+  CHECK (periode de l'annee de l'inscription (trigger))
+  NB : visible parent/eleve (RLS) seulement si statut = 'PUBLIE' et est_en_regle(inscription, periode) (blocage des impayes)
+  FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_validateur
+}
+entity "RESULTAT_ANNUEL" as RESULTAT_ANNUEL {
+  * id_resultat_annuel : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>> UNIQUE
+  id_niveau_propose : BIGINT <<FK>>
+  id_staff_validateur : BIGINT <<FK>>
+  moyenne_annuelle : DECIMAL(5,2)
+  rang : SMALLINT
+  * decision : VARCHAR(20) IN (EN_ATTENTE,ADMIS,REDOUBLE,EXCLU,DIPLOME) DEFAULT 'EN_ATTENTE'
+  appreciation : TEXT
+  * statut : VARCHAR(20) IN (PROVISOIRE,VALIDE,PUBLIE) DEFAULT 'PROVISOIRE'
+  date_deliberation : DATE
+  ..
+  CHECK (decision <> 'ADMIS' OR id_niveau_propose IS NOT NULL)
+  NB : visible parent/eleve (RLS) seulement si statut = 'PUBLIE' et est_en_regle sur toute l'annee (blocage des impayes)
+  FK composites (+ id_etablissement) : id_inscription, id_niveau_propose, id_staff_validateur
+}
+entity "DEROGATION_ACCES_RESULTAT" as DEROGATION_ACCES_RESULTAT {
+  * id_derogation_acces_resultat : BIGINT <<PK>>
+  --
+  * id_etablissement : BIGINT <<FK>> <<ISOLATION>>
+  * id_inscription : BIGINT <<FK>>
+  id_periode : BIGINT <<FK>>
+  * id_staff_accordant : BIGINT <<FK>>
+  * motif : TEXT
+  * date_accord : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_fin_validite : DATE
+  * est_active : BOOLEAN DEFAULT TRUE
+  ..
+  UNIQUE (id_inscription, id_periode) WHERE est_active AND id_periode IS NOT NULL
+  UNIQUE (id_inscription) WHERE est_active AND id_periode IS NULL
+  CHECK (accordant = DIRECTEUR ou titulaire d'une permission de derogation (trigger))
+  CHECK (periode de l'annee de l'inscription (trigger))
+  NB : id_periode vide = toute l'annee ; chaque derogation est tracee dans JOURNAL_AUDIT
+  NB : est_en_regle(inscription, periode) = blocage desactive OU derogation active OU reste du
+  NB : des creances obligatoires echues (date_limite <= fin de periode) <= SEUIL_TOLERANCE_IMPAYE
+  NB : bloque seulement le bulletin (resultats, moyennes, rang, decision) ; notes, presences et discipline restent visibles
+  FK composites (+ id_etablissement) : id_inscription, id_periode, id_staff_accordant
+}
+entity "NIVEAU" as NIVEAU <<externe>> {
+  * id_niveau : BIGINT <<PK>>
+}
+entity "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  * id_etablissement : BIGINT <<PK>>
+}
+entity "ENSEIGNEMENT" as ENSEIGNEMENT <<externe>> {
+  * id_enseignement : BIGINT <<PK>>
+}
+entity "PERIODE" as PERIODE <<externe>> {
+  * id_periode : BIGINT <<PK>>
+}
+entity "STAFF" as STAFF <<externe>> {
+  * id_staff : BIGINT <<PK>>
+}
+entity "INSCRIPTION" as INSCRIPTION <<externe>> {
+  * id_inscription : BIGINT <<PK>>
+}
+ENSEIGNEMENT ||--o{ EVALUATION : "id_enseignement"
+PERIODE ||--o{ EVALUATION : "id_periode"
+ETABLISSEMENT |o--o{ TYPE_EVALUATION : "id_etablissement"
+TYPE_EVALUATION ||--o{ EVALUATION : "id_type_evaluation"
+STAFF ||--o{ EVALUATION : "id_staff_createur"
+STAFF |o--o{ EVALUATION : "id_staff_validateur"
+EVALUATION ||--o{ NOTE : "id_evaluation"
+INSCRIPTION ||--o{ NOTE : "id_inscription"
+STAFF ||--o{ NOTE : "id_staff_saisie"
+NOTE ||--o{ HISTORIQUE_NOTE : "id_note"
+STAFF ||--o{ HISTORIQUE_NOTE : "id_staff_modificateur"
+INSCRIPTION ||--o{ RESULTAT_MATIERE : "id_inscription"
+ENSEIGNEMENT ||--o{ RESULTAT_MATIERE : "id_enseignement"
+PERIODE ||--o{ RESULTAT_MATIERE : "id_periode"
+INSCRIPTION ||--o{ RESULTAT_PERIODE : "id_inscription"
+PERIODE ||--o{ RESULTAT_PERIODE : "id_periode"
+STAFF |o--o{ RESULTAT_PERIODE : "id_staff_validateur"
+INSCRIPTION ||--o| RESULTAT_ANNUEL : "id_inscription"
+NIVEAU |o--o{ RESULTAT_ANNUEL : "id_niveau_propose"
+STAFF |o--o{ RESULTAT_ANNUEL : "id_staff_validateur"
+INSCRIPTION ||--o{ DEROGATION_ACCES_RESULTAT : "id_inscription"
+PERIODE |o--o{ DEROGATION_ACCES_RESULTAT : "id_periode"
+STAFF ||--o{ DEROGATION_ACCES_RESULTAT : "id_staff_accordant"
+legend bottom
+  * = NOT NULL | <<PK>> cle primaire (BIGINT identite) | <<FK>> cle etrangere
+  Crow's foot : || exactement un, |o zero ou un, o{ zero ou plusieurs
+  Entite grise = table d'un autre domaine (rappel). Suppression logique : statut/archivage (pas de DELETE metier).
+  UNIQUE ... WHERE = index unique partiel | (trigger) = regle controlee par trigger ou par l'application
+  Type de compte deduit : ligne presente dans STAFF, PARENT et/ou ELEVE (un utilisateur peut cumuler)
+  SGBD cible : PostgreSQL. EXCLUDE USING gist = pas de chevauchement de dates (extension btree_gist)
+  Isolation : <<ISOLATION>> = id_etablissement ajoute pour l'isolation (lien vers ETABLISSEMENT non dessine).
+  Toute table a id_etablissement obligatoire a UNIQUE (cle_primaire, id_etablissement) ; ses "FK composites"
+  referencent (cle, id_etablissement) : PostgreSQL rejette tout melange entre etablissements.
+  RLS : chaque table ne montre que les lignes de l'etablissement de la session (lignes communes NULL en lecture) ;
+  admin systeme = acces global. DELETE revoque partout (suppression logique).
+endlegend
+
+@enduml

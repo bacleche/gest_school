@@ -1,0 +1,140 @@
+@startuml MCD_03_scolarite
+title MCD - 3 - Secretariat : eleves, parents, inscriptions, documents
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam titleFontSize 18
+skinparam nodesep 60
+skinparam ranksep 90
+scale max 4000 width
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #F7F9FC
+  BorderColor #8FA3BF
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F3A5F
+  HeaderBackgroundColor #DCE9F7
+  BackgroundColor<<ASSOCIATION>> #FFF3CD
+  BorderColor<<ASSOCIATION>> #B8860B
+  BackgroundColor<<externe>> #EEEEEE
+  BorderColor<<externe>> #999999
+}
+hide circle
+hide methods
+
+class "PARENT" as PARENT {
+  <u>id_parent</u>
+  --
+  profession
+  employeur
+  adresse
+  telephone_secondaire
+  date_creation
+}
+class "ELEVE" as ELEVE {
+  <u>id_eleve</u>
+  --
+  matricule
+  nom
+  prenom
+  sexe
+  date_naissance
+  lieu_naissance
+  nationalite
+  adresse
+  photo
+  consentement_photo
+  date_consentement_photo
+  statut
+  date_anonymisation
+  date_creation
+}
+class "INSCRIPTION" as INSCRIPTION {
+  <u>id_inscription</u>
+  --
+  date_inscription
+  type_inscription
+  statut
+  date_validation
+  observation
+}
+class "TYPE_DOCUMENT" as TYPE_DOCUMENT {
+  <u>id_type_document</u>
+  --
+  code
+  libelle
+  genere_automatiquement
+}
+class "DOCUMENT" as DOCUMENT {
+  <u>id_document</u>
+  --
+  titre
+  fichier
+  date_document
+  visible_parent
+  visible_eleve
+  statut
+  date_creation
+}
+class "UTILISATEUR" as UTILISATEUR <<externe>> {
+  <u>id_utilisateur</u>
+}
+class "ETABLISSEMENT" as ETABLISSEMENT <<externe>> {
+  <u>id_etablissement</u>
+}
+class "CLASSE" as CLASSE <<externe>> {
+  <u>id_classe</u>
+}
+class "ANNEE_SCOLAIRE" as ANNEE_SCOLAIRE <<externe>> {
+  <u>id_annee_scolaire</u>
+}
+class "STAFF" as STAFF <<externe>> {
+  <u>id_staff</u>
+}
+class "FAMILLE" as FAMILLE {
+  <u>id_famille</u>
+  --
+  nom
+  date_creation
+}
+ELEVE "0,1" -- "0,n" FAMILLE : APPARTENIR_A_FAMILLE
+FAMILLE "1,1" -- "0,n" ETABLISSEMENT : REGROUPER_DANS
+FAMILLE "0,1" -- "0,n" PARENT : AVOIR_POUR_REFERENT
+PARENT "1,1" -- "0,1" UTILISATEUR : UTILISER_COMPTE
+ELEVE "1,1" -- "0,n" ETABLISSEMENT : ETRE_ENREGISTRE_DANS
+ELEVE "0,1" -- "0,n" UTILISATEUR : DISPOSER_COMPTE
+ELEVE "1,n" -- "0,n" PARENT : LIEN_PARENTE
+class "LIEN_PARENTE" as LIEN_PARENTE <<ASSOCIATION>> {
+  type_lien
+  est_responsable_legal
+  est_responsable_financier
+  est_contact_urgence
+  peut_consulter
+  date_debut
+  date_fin
+}
+(ELEVE, PARENT) .. LIEN_PARENTE
+INSCRIPTION "1,1" -- "0,n" ELEVE : S_INSCRIRE
+INSCRIPTION "1,1" -- "0,n" CLASSE : ETRE_AFFECTE_A
+INSCRIPTION "1,1" -- "0,n" ANNEE_SCOLAIRE : COUVRIR_ANNEE
+INSCRIPTION "1,1" -- "0,n" STAFF : ETRE_ENREGISTREE_PAR
+INSCRIPTION "0,1" -- "0,n" STAFF : ETRE_VALIDEE_PAR
+DOCUMENT "1,1" -- "0,n" ELEVE : CONCERNER_ELEVE
+TYPE_DOCUMENT "0,1" -- "0,n" ETABLISSEMENT : ETRE_PROPRE_A
+DOCUMENT "1,1" -- "0,n" TYPE_DOCUMENT : ETRE_DE_TYPE
+DOCUMENT "0,1" -- "0,n" STAFF : ETRE_PRODUIT_PAR
+legend bottom
+  Notation Merise : la cardinalite (min,max) placee pres d'une entite indique
+  combien de fois UNE occurrence de cette entite participe a l'association.
+  <u>identifiant</u> souligne | entite grise = entite d'un autre domaine (rappel)
+  Boite jaune = association porteuse de proprietes (devient une table au MLD)
+  Association n,n sans boite (ex. COMPOSER) = table de jonction au MLD
+  INSCRIPTION, ENSEIGNEMENT, NOTE, CREANCE, ATTRIBUTION_* : entites-associations dotees
+  d'un identifiant propre car referencees par d'autres entites ou historisees
+  Isolation : au MLD, chaque table d'un etablissement recoit id_etablissement (non represente ici)
+endlegend
+
+@enduml
